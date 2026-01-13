@@ -1,26 +1,101 @@
-@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --- PALETA BASE (Primitivos) --- */
+
+  /* Escala de Cinzas (Neutros) */
+  --color-dark-A: #0f172a; /* Slate 900 */
+  --color-dark-B: #1e293b; /* Slate 800 */
+  --color-dark-C: #334155; /* Slate 700 */
+
+  --color-gray-A: #64748b; /* Slate 500 */
+  --color-gray-B: #94a3b8; /* Slate 400 */
+  --color-gray-C-muted: #cbd5e1; /* Slate 300 */
+
+  --color-white-A: #ffffff;
+  --color-white-B: #f8fafc; /* Slate 50 */
+  --color-white-C: #f1f5f9; /* Slate 100 */
+  --color-white-D: #e2e8f0; /* Slate 200 */
+
+  /* Cores da Marca (Pharma Theme) */
+  --color-primary-dark: #0f766e; /* Teal 700 */
+  --color-primary: #14b8a6; /* Teal 500 */
+  --color-primary-light: #2dd4bf; /* Teal 400 */
+  --color-primary-opac: rgba(20, 184, 166, 0.15);
+
+  --color-secondary: #0ea5e9; /* Sky 500 */
+  --color-danger: #ef4444; /* Red 500 */
+  --color-success: #10b981; /* Emerald 500 */
+  --color-warning: #f59e0b; /* Amber 500 */
+
+  --gradient-brand: linear-gradient(
+    135deg,
+    var(--color-primary-dark),
+    var(--color-primary)
+  );
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* --- TEMA CLARO (Padrão) --- */
+:root {
+  --theme-background: var(--color-white-B);
+  --theme-surface: var(--color-white-A);
+  --theme-surface-hover: var(--color-white-C);
+
+  --theme-text-main: var(--color-dark-B);
+  --theme-text-muted: var(--color-gray-A);
+
+  --theme-border: var(--color-white-D);
+  --theme-divider: var(--color-white-D);
+
+  --theme-primary: var(--color-primary);
+  --theme-primary-hover: var(--color-primary-dark);
+
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* --- RESET & BASE --- */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  font-family: "Inter", sans-serif;
+  background-color: var(--theme-background);
+  color: var(--theme-text-main);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+/* Scrollbar Bonita */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-C-muted);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-B);
 }

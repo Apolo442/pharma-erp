@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Tabela de Usuários (Admin, Farmacêuticos)
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("USER") // "ADMIN" ou "USER"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Tabela de Medicamentos
+model Medicamento {
+  id          String   @id @default(uuid())
+  nome        String
+  descricao   String?
+  preco       Float
+  estoque     Int
+  vendasItems VendaItem[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Tabela de Vendas
+model Venda {
+  id        String      @id @default(uuid())
+  total     Float
+  data      DateTime    @default(now())
+  items     VendaItem[]
+}
+
+// Tabela de Itens da Venda (Relacionamento N:N)
+model VendaItem {
+  id            String      @id @default(uuid())
+  vendaId       String
+  venda         Venda       @relation(fields: [vendaId], references: [id])
+  medicamentoId String
+  medicamento   Medicamento @relation(fields: [medicamentoId], references: [id])
+  quantidade    Int
+  precoUnitario Float
+}

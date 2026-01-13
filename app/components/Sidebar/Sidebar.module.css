@@ -1,0 +1,108 @@
+.sidebar {
+  width: 280px;
+  height: 100vh;
+  background-color: var(--theme-surface);
+  border-right: 1px solid var(--theme-border);
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  top: 0;
+  z-index: 50;
+  transition: width 0.3s ease;
+}
+
+.header {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  border-bottom: 1px solid var(--theme-divider);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--color-primary-dark);
+}
+
+.nav {
+  flex: 1;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  color: var(--theme-text-muted);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.link:hover {
+  background-color: var(--theme-surface-hover);
+  color: var(--theme-primary);
+  transform: translateX(4px);
+}
+
+/* Estado Ativo (quando está na página atual) */
+.active {
+  background-color: var(--color-primary-opac);
+  color: var(--theme-primary);
+  font-weight: 600;
+}
+
+.footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--theme-divider);
+}
+
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  color: var(--color-danger);
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.logoutButton:hover {
+  background-color: rgba(239, 68, 68, 0.08); /* Red opac */
+}
+
+/* Responsividade simples para telas menores */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 80px;
+  }
+  .logo span,
+  .link span,
+  .logoutButton span {
+    display: none;
+  }
+  .header {
+    justify-content: center;
+    padding: 0;
+  }
+  .link,
+  .logoutButton {
+    justify-content: center;
+    padding: 1rem;
+  }
+  .link:hover {
+    transform: none;
+  }
+}
