@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { deleteMedicamento } from "./actions"; // Importa a action de deletar
+import { deleteMedicamento } from "./actions";
 import styles from "./medicamentos.module.css";
-import { Plus, Trash2, Package, Pencil } from "lucide-react";
+import { Plus, Package, Pencil, Eye } from "lucide-react";
+import { DeleteButton } from "@/app/components/ui/DeleteButton";
 
 export default async function MedicamentosPage() {
-  // Busca os dados diretamente do banco (Server Component)
   const medicamentos = await prisma.medicamento.findMany({
     orderBy: { createdAt: "desc" },
   });
@@ -36,7 +36,8 @@ export default async function MedicamentosPage() {
                 <th>Nome</th>
                 <th>Preço</th>
                 <th>Estoque</th>
-                <th style={{ width: "100px" }}>Ações</th>
+                <th style={{ width: "140px" }}>Ações</th>{" "}
+                {/* Aumentei um pouco a largura */}
               </tr>
             </thead>
             <tbody>
@@ -44,8 +45,18 @@ export default async function MedicamentosPage() {
                 <tr key={item.id}>
                   <td>
                     <div style={{ fontWeight: 500 }}>{item.nome}</div>
+                    {/* TRUNCAR DESCRIÇÃO GRANDE */}
                     {item.descricao && (
-                      <div style={{ fontSize: "0.85rem", color: "#888" }}>
+                      <div
+                        style={{
+                          fontSize: "0.85rem",
+                          color: "#888",
+                          maxWidth: "300px",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
                         {item.descricao}
                       </div>
                     )}
@@ -59,26 +70,32 @@ export default async function MedicamentosPage() {
                   <td>{item.estoque} un</td>
                   <td>
                     <div style={{ display: "flex", gap: "8px" }}>
+                      {/* --- NOVO BOTÃO: DETALHES --- */}
+                      <Link
+                        href={`/dashboard/medicamentos/${item.id}/detalhes`}
+                        className={styles.deleteButton} // Reusando a classe base de botão
+                        style={{ color: "var(--theme-text-muted)" }} // Cor neutra (Cinza)
+                        title="Ver Detalhes"
+                      >
+                        <Eye size={18} />
+                      </Link>
+
                       {/* Botão de Editar */}
                       <Link
                         href={`/dashboard/medicamentos/${item.id}`}
-                        className={styles.deleteButton} // Usando mesma classe base para tamanho
-                        style={{ color: "var(--theme-primary)" }} // Sobrescrevendo cor para azul/teal
+                        className={styles.deleteButton}
+                        style={{ color: "var(--theme-primary)" }} // Teal
                         title="Editar"
                       >
                         <Pencil size={18} />
                       </Link>
 
-                      {/* Botão de Excluir (Já existente) */}
-                      <form action={deleteMedicamento.bind(null, item.id)}>
-                        <button
-                          type="submit"
-                          className={styles.deleteButton}
-                          title="Excluir"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </form>
+                      {/* Botão de Excluir */}
+                      <DeleteButton
+                        action={deleteMedicamento}
+                        id={item.id}
+                        className={styles.deleteButton}
+                      />
                     </div>
                   </td>
                 </tr>

@@ -1,0 +1,121 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: var(--theme-surface);
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  padding: 2rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--theme-border);
+  padding-bottom: 1.5rem;
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--theme-text-main);
+}
+
+.idLabel {
+  font-size: 0.75rem;
+  color: var(--theme-text-muted);
+  font-family: monospace;
+  background: var(--color-white-C);
+  padding: 2px 6px;
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.infoBlock {
+  background-color: var(--color-white-B);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--theme-border);
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--theme-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--theme-primary);
+}
+
+.descriptionSection {
+  margin-top: 2rem;
+}
+
+.descriptionText {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--theme-text-main);
+  white-space: pre-wrap; /* Mantém as quebras de linha do texto original */
+  background-color: var(--color-white-B);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--theme-border);
+}
+
+.actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.backButton {
+  padding: 0.75rem 1.5rem;
+  color: var(--theme-text-main);
+  font-weight: 500;
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.backButton:hover {
+  background-color: var(--theme-surface-hover);
+}
+
+.editButton {
+  background-color: var(--theme-primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.editButton:hover {
+  background-color: var(--theme-primary-hover);
+}

@@ -48,3 +48,13 @@ model VendaItem {
   quantidade    Int
   precoUnitario Float
 }
+
+// Tabela de logs
+model Log {
+  id        String   @id @default(uuid())
+  action    String   // Ex: "CREATE", "UPDATE", "DELETE", "LOGIN"
+  entity    String   // Ex: "MEDICAMENTO", "USER", "VENDA"
+  entityId  String?  // ID do item que foi mexido
+  details   String?  // JSON ou texto descrevendo o que mudou (Ex: "Preço mudou de 10 para 15")
+  createdAt DateTime @default(now())
+}

@@ -1,14 +1,30 @@
+"use client";
+
 import Link from "next/link";
-import { createMedicamento } from "../actions"; // Importa a action criada no passo 1
+import { useActionState } from "react";
+import { createMedicamento } from "../actions";
 import styles from "./form.module.css";
-import { Save, ArrowLeft } from "lucide-react";
+import { Save } from "lucide-react";
+
+const initialState = { message: null, errors: {} };
 
 export default function NovoMedicamentoPage() {
+  const [state, formAction, isPending] = useActionState(
+    createMedicamento,
+    initialState
+  );
+
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Novo Medicamento</h1>
 
-      <form action={createMedicamento} className={styles.form}>
+      {state.message && (
+        <div className="p-3 mb-4 text-red-600 bg-red-50 rounded border border-red-200">
+          {state.message}
+        </div>
+      )}
+
+      <form action={formAction} className={styles.form}>
         <div className={styles.formGroup}>
           <label htmlFor="nome" className={styles.label}>
             Nome do Medicamento
@@ -17,10 +33,12 @@ export default function NovoMedicamentoPage() {
             type="text"
             name="nome"
             id="nome"
-            required
-            placeholder="Ex: Dipirona 500mg"
             className={styles.input}
+            placeholder="Ex: Dipirona 500mg"
           />
+          {state.errors?.nome && (
+            <span className="text-sm text-red-500">{state.errors.nome[0]}</span>
+          )}
         </div>
 
         <div className={styles.formGroup}>
@@ -30,8 +48,8 @@ export default function NovoMedicamentoPage() {
           <textarea
             name="descricao"
             id="descricao"
-            placeholder="Detalhes sobre o medicamento..."
             className={styles.textarea}
+            placeholder="Detalhes..."
           />
         </div>
 
@@ -51,10 +69,14 @@ export default function NovoMedicamentoPage() {
               name="preco"
               id="preco"
               step="0.01"
-              required
-              placeholder="0,00"
               className={styles.input}
+              placeholder="0.00"
             />
+            {state.errors?.preco && (
+              <span className="text-sm text-red-500">
+                {state.errors.preco[0]}
+              </span>
+            )}
           </div>
 
           <div className={styles.formGroup}>
@@ -65,10 +87,14 @@ export default function NovoMedicamentoPage() {
               type="number"
               name="estoque"
               id="estoque"
-              required
-              placeholder="0"
               className={styles.input}
+              placeholder="0"
             />
+            {state.errors?.estoque && (
+              <span className="text-sm text-red-500">
+                {state.errors.estoque[0]}
+              </span>
+            )}
           </div>
         </div>
 
@@ -76,9 +102,13 @@ export default function NovoMedicamentoPage() {
           <Link href="/dashboard/medicamentos" className={styles.buttonCancel}>
             Cancelar
           </Link>
-          <button type="submit" className={styles.buttonSave}>
+          <button
+            type="submit"
+            className={styles.buttonSave}
+            disabled={isPending}
+          >
             <Save size={18} />
-            Salvar Medicamento
+            {isPending ? "Salvando..." : "Salvar Medicamento"}
           </button>
         </div>
       </form>

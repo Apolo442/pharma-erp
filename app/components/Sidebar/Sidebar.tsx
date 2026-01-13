@@ -10,7 +10,7 @@ import {
   ShoppingCart,
   Package,
   LogOut,
-  Stethoscope,
+  Users, // Novo ícone importado
 } from "lucide-react";
 
 const menuItems = [
@@ -18,7 +18,7 @@ const menuItems = [
   { label: "Vendas", href: "/dashboard/vendas", icon: ShoppingCart },
   { label: "Medicamentos", href: "/dashboard/medicamentos", icon: Pill },
   { label: "Estoque", href: "/dashboard/estoque", icon: Package },
-  { label: "Médicos", href: "/dashboard/medicos", icon: Stethoscope },
+  { label: "Usuários", href: "/users", icon: Users }, // Nova aba substituindo Médicos
 ];
 
 export function Sidebar() {
@@ -36,7 +36,6 @@ export function Sidebar() {
       <nav className={styles.nav}>
         {menuItems.map((item) => {
           // Verifica se a rota atual começa com o href do item
-          // Ex: /dashboard/vendas/novo ativa o item /dashboard/vendas
           const isActive =
             pathname === item.href || pathname.startsWith(`${item.href}/`);
 
