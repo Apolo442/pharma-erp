@@ -7,18 +7,21 @@ import styles from "./Sidebar.module.css";
 import {
   LayoutDashboard,
   Pill,
-  ShoppingCart,
+  Store, // Mudamos ShoppingCart para Store (Fica mais "Ponto de Venda")
   Package,
   LogOut,
-  Users, // Novo ícone importado
+  Users,
+  Wallet,
+  FileText,
 } from "lucide-react";
 
 const menuItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Vendas", href: "/dashboard/vendas", icon: ShoppingCart },
-  { label: "Medicamentos", href: "/dashboard/medicamentos", icon: Pill },
-  { label: "Estoque", href: "/dashboard/estoque", icon: Package },
-  { label: "Usuários", href: "/users", icon: Users }, // Nova aba substituindo Médicos
+  { label: "Visão Geral", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Balcão (PDV)", href: "/dashboard/vendas", icon: Store },
+  { label: "Caixa / Pagamento", href: "/dashboard/caixa", icon: Wallet },
+  { label: "Produtos & Estoque", href: "/dashboard/produtos", icon: Package },
+  { label: "Histórico", href: "/dashboard/historico", icon: FileText },
+  { label: "Usuários", href: "/users", icon: Users },
 ];
 
 export function Sidebar() {
@@ -28,14 +31,16 @@ export function Sidebar() {
     <aside className={styles.sidebar}>
       <div className={styles.header}>
         <div className={styles.logo}>
-          <Pill size={32} />
+          {/* Usei a cor primária no ícone */}
+          <div className={styles.logoIcon}>
+            <Pill size={28} />
+          </div>
           <span>PharmaOne</span>
         </div>
       </div>
 
       <nav className={styles.nav}>
         {menuItems.map((item) => {
-          // Verifica se a rota atual começa com o href do item
           const isActive =
             pathname === item.href || pathname.startsWith(`${item.href}/`);
 

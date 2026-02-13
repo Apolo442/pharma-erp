@@ -24,6 +24,5 @@ export async function registrarLog(
     });
   } catch (error) {
     console.error("Falha ao salvar log:", error);
-    // Não lançamos erro aqui para não travar a operação principal do usuário
   }
 }

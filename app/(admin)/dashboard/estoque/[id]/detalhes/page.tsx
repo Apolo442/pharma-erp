@@ -74,7 +74,7 @@ export default async function DetalhesMedicamentoPage({ params }: PageProps) {
 
         {/* Ações */}
         <div className={styles.actions}>
-          <Link href="/dashboard/medicamentos" className={styles.backButton}>
+          <Link href="/dashboard/estoque" className={styles.backButton}>
             <ArrowLeft
               size={18}
               style={{
@@ -87,7 +87,7 @@ export default async function DetalhesMedicamentoPage({ params }: PageProps) {
           </Link>
 
           <Link
-            href={`/dashboard/medicamentos/${medicamento.id}`}
+            href={`/dashboard/estoque/${medicamento.id}`}
             className={styles.editButton}
           >
             <Pencil size={18} />

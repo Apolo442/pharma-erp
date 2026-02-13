@@ -7,7 +7,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Tabela de Usuários (Admin, Farmacêuticos)
+// usuários do sistema (admin, farmacêuticos, caixa)
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -16,45 +16,80 @@ model User {
   role      String   @default("USER") // "ADMIN" ou "USER"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // histórico de operações do usuário
+  vendasIniciadas   Venda[] @relation("VendedorBalcao") // pré-vendas que ele abriu
+  vendasFinalizadas Venda[] @relation("OperadorCaixa")  // vendas que ele recebeu/fechou
 }
 
-// Tabela de Medicamentos
+// produtos e medicamentos
 model Medicamento {
-  id          String   @id @default(uuid())
-  nome        String
-  descricao   String?
-  preco       Float
-  estoque     Int
+  id        String  @id @default(uuid())
+  nome      String
+  descricao String?
+  preco     Float
+  estoque   Int
+  categoria String  @default("MEDICAMENTO")
+  imagemUrl String?
+
+  ativo     Boolean @default(true)
+  // relação inversa
   vendasItems VendaItem[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// Tabela de Vendas
+// fluxo de vendas (pré-venda -> venda concluída)
 model Venda {
-  id        String      @id @default(uuid())
-  total     Float
-  data      DateTime    @default(now())
-  items     VendaItem[]
+  id Int @id @default(autoincrement()) // número do pedido (ex: 105)
+
+  // status e financeiro
+  status         String  @default("PENDENTE") // "PENDENTE", "CONCLUIDA", "CANCELADA"
+  total          Float
+  formaPagamento String? // opcional, preenchido apenas no caixa
+  clienteNome    String?
+
+  // atores envolvidos
+  vendedorId String
+  vendedor   User   @relation("VendedorBalcao", fields: [vendedorId], references: [id]) // quem atendeu (obrigatório)
+
+  caixaId String?
+  caixa   User?   @relation("OperadorCaixa", fields: [caixaId], references: [id]) // quem recebeu (opcional até fechar)
+
+  // itens da lista
+  itens VendaItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// Tabela de Itens da Venda (Relacionamento N:N)
+// itens individuais dentro de uma venda
 model VendaItem {
-  id            String      @id @default(uuid())
-  vendaId       String
-  venda         Venda       @relation(fields: [vendaId], references: [id])
+  id String @id @default(uuid())
+
+  // vínculo com a venda (agora usando int)
+  vendaId Int
+  venda   Venda @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+
+  // vínculo com o produto
   medicamentoId String
   medicamento   Medicamento @relation(fields: [medicamentoId], references: [id])
+
+  // dados do momento da compra
   quantidade    Int
-  precoUnitario Float
+  precoUnitario Float // salva o preço histórico
+
+  @@index([vendaId])
+  @@index([medicamentoId])
 }
 
-// Tabela de logs
+// auditoria e segurança
 model Log {
   id        String   @id @default(uuid())
-  action    String   // Ex: "CREATE", "UPDATE", "DELETE", "LOGIN"
-  entity    String   // Ex: "MEDICAMENTO", "USER", "VENDA"
-  entityId  String?  // ID do item que foi mexido
-  details   String?  // JSON ou texto descrevendo o que mudou (Ex: "Preço mudou de 10 para 15")
+  action    String   // ex: "CREATE", "UPDATE", "LOGIN"
+  entity    String   // ex: "MEDICAMENTO", "VENDA"
+  entityId  String?
+  details   String?
   createdAt DateTime @default(now())
 }

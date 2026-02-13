@@ -1,0 +1,373 @@
+/* app/dashboard/produtos/produtos.module.css */
+.screen {
+  --primary: #0f766e;
+  --bg-app: #f1f5f9;
+  --bg-surface: #ffffff;
+  --border-color: #e2e8f0;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --danger: #ef4444;
+
+  height: calc(100vh - 80px); /* Altura fixa para permitir scroll interno */
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background-color: var(--bg-app);
+  overflow: hidden; /* Impede scroll na tela toda */
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* === LADO ESQUERDO: LISTA RICA === */
+.listaArea {
+  width: 400px;
+  background: var(--bg-surface);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.headerLista {
+  padding: 1.25rem;
+  background-color: #fff;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex-shrink: 0; /* Impede que o cabeçalho seja esmagado */
+}
+
+.kpiRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.kpiCard {
+  flex: 1;
+  background: #f8fafc;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  text-align: center;
+  cursor: pointer; /* Indica que é clicável */
+  transition: all 0.2s;
+}
+
+.kpiCard:hover {
+  border-color: var(--primary);
+  background-color: #f0fdfa;
+}
+
+.kpiCard.activeFilter {
+  background-color: #fee2e2;
+  border-color: var(--danger);
+  box-shadow: 0 0 0 1px var(--danger);
+}
+
+.kpiLabel {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.kpiValue {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1;
+}
+
+/* Busca Refatorada com Flexbox (Corrige alinhamento da Lupa) */
+.searchWrapper {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 0.75rem;
+  height: 42px; /* Altura fixa para garantir alinhamento */
+  transition: all 0.2s;
+}
+
+.searchWrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.searchIcon {
+  color: #94a3b8;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  outline: none;
+  height: 100%;
+}
+
+/* Área de Scroll Corrigida */
+.scrollArea {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0; /* O segredo para o scroll funcionar em flex nested */
+  padding: 1rem;
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cardProduto {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0; /* O segredo para os cards não serem esmagados */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 110px; /* Garante altura mínima */
+}
+
+.cardProduto:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.cardProduto.active {
+  border-color: var(--primary);
+  background-color: #f0fdfa;
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.cardNome {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardPreco {
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto; /* Empurra para o fundo do card */
+}
+
+.categoriaBadge {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.estoqueArea {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.barraBg {
+  width: 70px;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.barraFill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+/* === LADO DIREITO: FORMULÁRIO === */
+.formArea {
+  flex: 1;
+  background: var(--bg-surface);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.emptyState {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  background-color: #f8fafc;
+}
+
+.btnNovo {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary);
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btnNovo:hover {
+  background-color: #115e59;
+}
+
+.formHeader {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.formTitle {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.idBadge {
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: var(--text-muted);
+  background-color: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  user-select: all;
+}
+
+.formContent {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 2rem;
+  background-color: #fff;
+}
+
+.inputGroup {
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  color: var(--text-main);
+  transition: all 0.2s;
+}
+
+.input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+}
+
+.gridCols2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.formActions {
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btnSave {
+  padding: 0.75rem 2rem;
+  background-color: var(--primary);
+  color: white;
+  font-weight: 700;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+.btnSave:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btnDelete {
+  padding: 0.75rem 1.5rem;
+  background-color: transparent;
+  color: var(--danger);
+  font-weight: 600;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.btnDelete:hover {
+  background-color: #fef2f2;
+}

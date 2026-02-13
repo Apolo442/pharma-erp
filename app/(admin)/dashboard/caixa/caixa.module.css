@@ -1,0 +1,339 @@
+/* app/dashboard/caixa/caixa.module.css */
+
+.screen {
+  --primary: #0f766e;
+  --primary-hover: #115e59;
+  --bg-app: #f1f5f9;
+  --bg-surface: #ffffff;
+  --border-color: #e2e8f0;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --danger: #ef4444;
+  --success: #22c55e;
+
+  height: calc(100vh - 80px);
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background-color: var(--bg-app);
+  overflow: hidden;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* === LADO ESQUERDO: LISTA DE PEDIDOS === */
+.listaPedidos {
+  width: 380px;
+  background: var(--bg-surface);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.headerLista {
+  padding: 1.25rem;
+  background-color: #fff;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badgeCount {
+  background-color: #f1f5f9;
+  color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+}
+
+.scrollArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cardPedido {
+  padding: 1rem;
+  border-radius: 10px;
+  background-color: white;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.cardPedido:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.cardPedido.active {
+  background-color: #f0fdfa; /* Teal-50 */
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.badgeId {
+  background-color: var(--text-main);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.cardCliente {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardTotal {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  text-align: right;
+  letter-spacing: -0.02em;
+}
+
+/* === LADO DIREITO: DETALHES === */
+.detalhesArea {
+  flex: 1;
+  background: var(--bg-surface);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.emptyState {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  background-color: #f8fafc;
+}
+
+/* Área de Resumo (Topo) */
+.resumoVenda {
+  flex: 1;
+  padding: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.resumoHeader {
+  padding: 1.5rem;
+  background-color: #fff;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tituloVenda {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 0.25rem;
+}
+
+.infoVenda {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 1rem;
+}
+
+/* Tabela de Itens */
+.tabelaContainer {
+  padding: 1rem;
+}
+
+.tabelaItens {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabelaItens th {
+  text-align: left;
+  padding: 0.75rem;
+  border-bottom: 2px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.tabelaItens td {
+  padding: 1rem 0.75rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+/* Painel de Pagamento (Rodapé) */
+.painelPagamento {
+  background-color: #f8fafc;
+  border-top: 1px solid var(--border-color);
+  padding: 1.5rem;
+}
+
+.pagamentoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.pagamentoEsq {
+  flex: 1;
+}
+
+.pagamentoDir {
+  text-align: right;
+}
+
+.labelPagamento {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.totalGigante {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--primary);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.gridPagamento {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.btnPagamento {
+  padding: 1rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: white;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btnPagamento:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background-color: #f0fdfa;
+}
+
+.btnPagamento.selected {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.3);
+}
+
+.btnPagamento span {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Ações Finais */
+.actionsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.btnCancelar {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid #fecaca;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btnCancelar:hover {
+  background-color: #fef2f2;
+  border-color: var(--danger);
+}
+
+.btnFinalizar {
+  background-color: #16a34a; /* Green-600 */
+  color: white;
+  padding: 1rem 3rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btnFinalizar:hover:not(:disabled) {
+  background-color: #15803d;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.4);
+}
+
+.btnFinalizar:disabled {
+  background-color: #cbd5e1;
+  cursor: not-allowed;
+  box-shadow: none;
+}

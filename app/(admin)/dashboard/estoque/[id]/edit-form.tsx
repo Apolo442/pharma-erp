@@ -2,46 +2,73 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { updateMedicamento } from "../actions";
-import styles from "../novo/form.module.css";
+// Importando a Action e o Tipo atualizado
+import { updateMedicamento, MedicamentoState } from "../actions";
+import styles from "../novo/form.module.css"; // Reaproveitando estilos
 import { Save } from "lucide-react";
 import { Medicamento } from "@prisma/client";
 
-// Recebe os dados iniciais do servidor
+// Categorias disponíveis (mesmas do formulário de criação)
+const CATEGORIAS = [
+  "MEDICAMENTO",
+  "HIGIENE",
+  "COSMETICO",
+  "SUPLEMENTO",
+  "OUTROS",
+];
+
 export default function EditMedicamentoForm({
   medicamento,
 }: {
   medicamento: Medicamento;
 }) {
   const updateWithId = updateMedicamento.bind(null, medicamento.id);
-  const [state, formAction, isPending] = useActionState(updateWithId, {
-    message: null,
-    errors: {},
-  });
 
-  // 👇 Função para confirmar antes de enviar
+  // Estado inicial tipado para evitar erros de TypeScript
+  const initialState: MedicamentoState = { message: null, errors: {} };
+
+  const [state, formAction, isPending] = useActionState(
+    updateWithId,
+    initialState
+  );
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    const confirmacao = window.confirm(
-      "Deseja realmente salvar as alterações neste medicamento?"
-    );
-
-    // Se o usuário clicar em "Cancelar", impedimos o envio do form
-    if (!confirmacao) {
-      event.preventDefault();
-    }
+    const confirmed = window.confirm("Salvar alterações neste item?");
+    if (!confirmed) event.preventDefault();
   };
 
   return (
-    <form
-      action={formAction}
-      className={styles.form}
-      onSubmit={handleSubmit} /* 👈 Adicione isso aqui */
-    >
+    <form action={formAction} className={styles.form} onSubmit={handleSubmit}>
       {state.message && (
         <div className="p-3 text-red-600 bg-red-50 rounded border border-red-200">
           {state.message}
         </div>
       )}
+
+      {/* --- CAMPO CATEGORIA (Adicionado) --- */}
+      <div className={styles.formGroup}>
+        <label htmlFor="categoria" className={styles.label}>
+          Categoria
+        </label>
+        <select
+          name="categoria"
+          id="categoria"
+          className={styles.input}
+          defaultValue={medicamento.categoria} // Puxa o valor atual do banco
+          required
+        >
+          {CATEGORIAS.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+        {state.errors?.categoria && (
+          <span className="text-sm text-red-500">
+            {state.errors.categoria[0]}
+          </span>
+        )}
+      </div>
 
       <div className={styles.formGroup}>
         <label htmlFor="nome" className={styles.label}>
@@ -113,7 +140,7 @@ export default function EditMedicamentoForm({
       </div>
 
       <div className={styles.actions}>
-        <Link href="/dashboard/medicamentos" className={styles.buttonCancel}>
+        <Link href="/dashboard/estoque" className={styles.buttonCancel}>
           Cancelar
         </Link>
         <button

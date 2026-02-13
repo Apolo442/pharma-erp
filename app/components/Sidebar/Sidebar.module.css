@@ -1,14 +1,25 @@
 .sidebar {
-  width: 280px;
+  /* Variáveis locais para garantir o visual Smart Pharma */
+  --primary: #0f766e; /* Teal-700 */
+  --primary-light: #f0fdfa; /* Teal-50 (Fundo ativo) */
+  --text-main: #1e293b; /* Slate-800 */
+  --text-muted: #64748b; /* Slate-500 */
+  --border: #e2e8f0; /* Slate-200 */
+  --bg-surface: #ffffff;
+  --danger: #ef4444;
+  --danger-bg: #fef2f2;
+
+  width: 260px; /* Um pouco mais fina para ser elegante */
   height: 100vh;
-  background-color: var(--theme-surface);
-  border-right: 1px solid var(--theme-border);
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  left: 0;
+  position: sticky; /* Mantém fixa ao rolar a página principal */
   top: 0;
   z-index: 50;
   transition: width 0.3s ease;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
 .header {
@@ -16,16 +27,23 @@
   display: flex;
   align-items: center;
   padding: 0 1.5rem;
-  border-bottom: 1px solid var(--theme-divider);
+  border-bottom: 1px solid var(--border);
 }
 
 .logo {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-weight: 700;
-  font-size: 1.5rem;
-  color: var(--color-primary-dark);
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.logoIcon {
+  color: var(--primary);
+  display: flex;
+  align-items: center;
 }
 
 .nav {
@@ -40,31 +58,33 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0.85rem 1rem;
+  padding: 0.75rem 1rem;
   border-radius: 8px;
-  color: var(--theme-text-muted);
+  color: var(--text-muted);
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   transition: all 0.2s ease;
   text-decoration: none;
+  border: 1px solid transparent; /* Para evitar pulo visual no hover */
 }
 
 .link:hover {
-  background-color: var(--theme-surface-hover);
-  color: var(--theme-primary);
+  background-color: #f8fafc;
+  color: var(--primary);
   transform: translateX(4px);
 }
 
-/* Estado Ativo (quando está na página atual) */
+/* Estado Ativo (Visual Smart Pharma) */
 .active {
-  background-color: var(--color-primary-opac);
-  color: var(--theme-primary);
-  font-weight: 600;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  font-weight: 700;
+  border-color: rgba(15, 118, 110, 0.1); /* Borda sutil */
 }
 
 .footer {
   padding: 1.5rem;
-  border-top: 1px solid var(--theme-divider);
+  border-top: 1px solid var(--border);
 }
 
 .logoutButton {
@@ -73,20 +93,25 @@
   gap: 10px;
   width: 100%;
   padding: 0.75rem 1rem;
-  color: var(--color-danger);
-  font-weight: 500;
+  color: var(--danger);
+  font-weight: 600;
+  font-size: 0.9rem;
   border-radius: 8px;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 .logoutButton:hover {
-  background-color: rgba(239, 68, 68, 0.08); /* Red opac */
+  background-color: var(--danger-bg);
 }
 
-/* Responsividade simples para telas menores */
+/* Responsividade */
 @media (max-width: 768px) {
   .sidebar {
-    width: 80px;
+    width: 70px;
+    padding: 0;
   }
   .logo span,
   .link span,
@@ -100,9 +125,12 @@
   .link,
   .logoutButton {
     justify-content: center;
-    padding: 1rem;
+    padding: 1rem 0;
   }
   .link:hover {
     transform: none;
+  }
+  .logo {
+    gap: 0;
   }
 }

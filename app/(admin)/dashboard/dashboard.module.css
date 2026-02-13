@@ -1,70 +1,98 @@
+/* app/dashboard/dashboard.module.css */
 .container {
-  padding: 20px;
+  padding: 1.5rem;
+  background-color: #f8fafc; /* Slate-50 */
+  min-height: 100vh;
 }
 
 .title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 24px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b; /* Slate-800 */
+  margin-bottom: 1.5rem;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .card {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.cardTitle {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 8px;
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cardIcon {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Cores específicas para os cards */
+.green {
+  background-color: #dcfce7;
+  color: #166534;
+}
+.blue {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+.orange {
+  background-color: #ffedd5;
+  color: #9a3412;
+}
+.red {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.cardLabel {
+  font-size: 0.875rem;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .cardValue {
-  font-size: 28px;
-  font-weight: bold;
-  color: #10b981; /* Cor verde do tema */
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
 }
 
-.sectionTitle {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #444;
-}
-
-.tableContainer {
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table th {
-  text-align: left;
-  padding: 12px;
-  border-bottom: 2px solid #eee;
-  color: #555;
-}
-
-.table td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-  color: #333;
+.alertBox {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 0.5rem;
+  color: #1e40af;
+  font-size: 0.875rem;
 }
