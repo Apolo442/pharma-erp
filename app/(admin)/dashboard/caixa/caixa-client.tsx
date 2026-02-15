@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import styles from "./caixa.module.css";
 import {
   CreditCard,
@@ -12,11 +12,14 @@ import {
   CheckCircle,
   User,
   Clock,
+  Printer,
 } from "lucide-react";
 import { finalizarVenda, cancelarVenda } from "./actions";
 import { useDialog } from "@/app/components/ui/DialogProvider";
+import ReciboVenda from "./ReciboVenda";
 
 type VendaItem = {
+  id: string;
   quantidade: number;
   precoUnitario: number;
   medicamento: { nome: string };
@@ -26,7 +29,9 @@ type Venda = {
   id: number;
   total: number;
   clienteNome: string | null;
+  formaPagamento: string | null;
   createdAt: Date;
+  updatedAt: Date;
   vendedor: { name: string | null };
   itens: VendaItem[];
 };
@@ -41,7 +46,21 @@ export default function CaixaClient({
   const [selecionada, setSelecionada] = useState<Venda | null>(null);
   const [formaPagamento, setFormaPagamento] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [vendaConcluida, setVendaConcluida] = useState<Venda | null>(null);
+
   const { alert, confirm, prompt } = useDialog();
+
+  // Atalho F8 para impressão rápida
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "F8" && vendaConcluida) {
+        e.preventDefault();
+        window.print();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [vendaConcluida]);
 
   async function handleFinalizar() {
     if (!selecionada || !formaPagamento) return;
@@ -65,7 +84,8 @@ export default function CaixaClient({
     setIsProcessing(false);
 
     if (res?.success) {
-      await alert("Venda finalizada com sucesso!", "Sucesso");
+      // Mesclamos a forma de pagamento selecionada para o objeto de impressão
+      setVendaConcluida({ ...selecionada, formaPagamento });
       setSelecionada(null);
       setFormaPagamento("");
     } else {
@@ -82,9 +102,6 @@ export default function CaixaClient({
       "Cancelar Pedido",
     );
 
-    // Se o usuário fechou o modal ou clicou em Cancelar
-    if (motivo === null) return;
-
     if (motivo === "CANCELAR") {
       setIsProcessing(true);
       const res = await cancelarVenda(selecionada.id);
@@ -96,17 +113,12 @@ export default function CaixaClient({
       } else {
         await alert(res?.message || "Erro desconhecido.", "Erro ao cancelar");
       }
-    } else {
-      await alert(
-        "A palavra de confirmação não confere. O pedido não foi cancelado.",
-        "Ação cancelada",
-      );
     }
   }
 
   return (
     <div className={styles.screen}>
-      {/* ESQUERDA: LISTA */}
+      {/* LADO ESQUERDO: LISTA DE PEDIDOS */}
       <div className={styles.listaPedidos}>
         <div className={styles.headerLista}>
           <span>Fila de Atendimento</span>
@@ -126,7 +138,10 @@ export default function CaixaClient({
                 className={`${styles.cardPedido} ${
                   selecionada?.id === v.id ? styles.active : ""
                 }`}
-                onClick={() => setSelecionada(v)}
+                onClick={() => {
+                  setVendaConcluida(null);
+                  setSelecionada(v);
+                }}
               >
                 <div className={styles.cardHeader}>
                   <span className={styles.badgeId}>#{v.id}</span>
@@ -140,12 +155,10 @@ export default function CaixaClient({
                     </span>
                   </div>
                 </div>
-
                 <div className={styles.cardCliente}>
                   <User size={12} className="inline mr-1 opacity-50" />
                   {v.clienteNome || "Consumidor Final"}
                 </div>
-
                 <div className={styles.cardTotal}>
                   {v.total.toLocaleString("pt-BR", {
                     style: "currency",
@@ -158,13 +171,43 @@ export default function CaixaClient({
         </div>
       </div>
 
-      {/* DIREITA: DETALHES */}
+      {/* LADO DIREITO: DETALHES E PAGAMENTO */}
       <div className={styles.detalhesArea}>
-        {!selecionada ? (
+        {vendaConcluida ? (
+          <div className={styles.sucessoOverlay}>
+            <div className={styles.sucessoContent}>
+              <div className={styles.checkIconWrapper}>
+                <CheckCircle size={80} strokeWidth={1.5} />
+              </div>
+
+              <h2 className={styles.sucessoTitle}>Venda Finalizada!</h2>
+              <p className={styles.sucessoSubtitle}>
+                Pedido <strong>#{vendaConcluida.id}</strong> processado com
+                sucesso.
+              </p>
+
+              <div className={styles.sucessoActions}>
+                <button
+                  onClick={() => window.print()}
+                  className={styles.btnImprimirGrande}
+                >
+                  <Printer size={22} /> IMPRIMIR CUPOM (F8)
+                </button>
+
+                <button
+                  onClick={() => setVendaConcluida(null)}
+                  className={styles.btnVoltarFila}
+                >
+                  VOLTAR PARA A FILA
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : !selecionada ? (
           <div className={styles.emptyState}>
             <ShoppingBag size={80} className="mb-6 opacity-10" />
             <p className="text-lg font-medium text-slate-400">
-              Selecione um pedido para iniciar o pagamento
+              Selecione um pedido na fila ao lado
             </p>
           </div>
         ) : (
@@ -174,8 +217,7 @@ export default function CaixaClient({
                 <h2 className={styles.tituloVenda}>Pedido #{selecionada.id}</h2>
                 <div className={styles.infoVenda}>
                   <span>
-                    Vendedor:{" "}
-                    <strong>{selecionada.vendedor.name || "N/A"}</strong>
+                    Vendedor: <strong>{selecionada.vendedor.name}</strong>
                   </span>
                   <span>•</span>
                   <span>
@@ -223,7 +265,6 @@ export default function CaixaClient({
               </div>
             </div>
 
-            {/* Painel Inferior */}
             <div className={styles.painelPagamento}>
               <div className={styles.pagamentoRow}>
                 <div className={styles.pagamentoEsq}>
@@ -239,9 +280,7 @@ export default function CaixaClient({
                     ].map((pg) => (
                       <button
                         key={pg.id}
-                        className={`${styles.btnPagamento} ${
-                          formaPagamento === pg.id ? styles.selected : ""
-                        }`}
+                        className={`${styles.btnPagamento} ${formaPagamento === pg.id ? styles.selected : ""}`}
                         onClick={() => setFormaPagamento(pg.id)}
                       >
                         <pg.icon size={24} />
@@ -287,6 +326,11 @@ export default function CaixaClient({
             </div>
           </>
         )}
+      </div>
+
+      {/* ÁREA DE IMPRESSÃO - ISOLADA DE QUALQUER ESTILIZAÇÃO DO DASHBOARD */}
+      <div className={styles.printArea}>
+        {vendaConcluida && <ReciboVenda venda={vendaConcluida} />}
       </div>
     </div>
   );

@@ -1,9 +1,7 @@
 import { prisma } from "@/lib/prisma";
-// import { getCurrentUser } from "@/lib/session";
 import CaixaClient from "./caixa-client";
 
 export default async function CaixaPage() {
-  // 1. Busca vendas pendentes
   const vendasPendentes = await prisma.venda.findMany({
     where: { status: "PENDENTE" },
     include: {
@@ -17,9 +15,6 @@ export default async function CaixaPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  // 2. Busca usuário atual (Caixa)
-  // Se não tiver autenticação pronta, vamos pegar o primeiro usuário do banco como "Caixa Logado"
-  // para não travar o desenvolvimento.
   const caixaUser = await prisma.user.findFirst();
 
   return (
@@ -28,8 +23,11 @@ export default async function CaixaPage() {
         Frente de Caixa
       </h1>
 
-      {/* Componente Client-Side para interação */}
-      <CaixaClient vendas={vendasPendentes} caixaId={caixaUser?.id || ""} />
+      <CaixaClient
+        vendas={vendasPendentes}
+        caixaId={caixaUser?.id || ""}
+        /* caixaNome={caixaUser?.name || "Operador"} */
+      />
     </div>
   );
 }

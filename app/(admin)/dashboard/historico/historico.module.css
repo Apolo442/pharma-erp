@@ -15,7 +15,10 @@
   padding: 1.5rem;
   background-color: var(--bg-app);
   overflow: hidden;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 /* === LADO ESQUERDO: LISTA === */

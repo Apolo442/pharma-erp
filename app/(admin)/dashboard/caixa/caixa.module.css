@@ -17,7 +17,10 @@
   padding: 1.5rem;
   background-color: var(--bg-app);
   overflow: hidden;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 /* === LADO ESQUERDO: LISTA DE PEDIDOS === */
@@ -78,7 +81,7 @@
 }
 
 .cardPedido.active {
-  background-color: #f0fdfa; /* Teal-50 */
+  background-color: #f0fdfa;
   border-color: var(--primary);
   box-shadow: 0 0 0 1px var(--primary);
 }
@@ -132,6 +135,7 @@
   flex-direction: column;
   overflow: hidden;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .emptyState {
@@ -144,7 +148,6 @@
   background-color: #f8fafc;
 }
 
-/* Área de Resumo (Topo) */
 .resumoVenda {
   flex: 1;
   padding: 0;
@@ -173,7 +176,6 @@
   gap: 1rem;
 }
 
-/* Tabela de Itens */
 .tabelaContainer {
   padding: 1rem;
 }
@@ -201,7 +203,7 @@
   font-size: 0.95rem;
 }
 
-/* Painel de Pagamento (Rodapé) */
+/* === PAINEL DE PAGAMENTO === */
 .painelPagamento {
   background-color: #f8fafc;
   border-top: 1px solid var(--border-color);
@@ -218,7 +220,6 @@
 .pagamentoEsq {
   flex: 1;
 }
-
 .pagamentoDir {
   text-align: right;
 }
@@ -261,25 +262,12 @@
   gap: 0.5rem;
 }
 
-.btnPagamento:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-  background-color: #f0fdfa;
-}
-
 .btnPagamento.selected {
   background-color: var(--primary);
   color: white;
   border-color: var(--primary);
-  box-shadow: 0 4px 6px -1px rgba(15, 118, 110, 0.3);
 }
 
-.btnPagamento span {
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-/* Ações Finais */
 .actionsRow {
   display: flex;
   justify-content: space-between;
@@ -297,21 +285,14 @@
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.btnCancelar:hover {
-  background-color: #fef2f2;
-  border-color: var(--danger);
-}
-
 .btnFinalizar {
-  background-color: #16a34a; /* Green-600 */
+  background-color: var(--primary);
+
   color: white;
   padding: 1rem 3rem;
   border-radius: 8px;
@@ -319,21 +300,221 @@
   font-size: 1.1rem;
   border: none;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.btnFinalizar:hover:not(:disabled) {
-  background-color: #15803d;
-  transform: translateY(-1px);
-  box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.4);
+/* === SUCESSO E OVERLAY (TELA) === */
+.sucessoOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: #ffffff;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease-out;
 }
 
-.btnFinalizar:disabled {
-  background-color: #cbd5e1;
-  cursor: not-allowed;
-  box-shadow: none;
+.sucessoContent {
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  padding: 2rem;
+}
+
+.checkIconWrapper {
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.sucessoTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+.sucessoSubtitle {
+  font-size: 1.1rem;
+  color: #475569;
+  margin-bottom: 2.5rem;
+}
+
+.sucessoActions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btnImprimirGrande {
+  width: 100%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 1.25rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+}
+
+.btnVoltarFila {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+}
+
+/* === CONFIGURAÇÃO DE IMPRESSÃO (A5 - ESTILO FOLHA DE PAPEL) === */
+.printArea {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A5;
+    margin: 0;
+  }
+
+  /* Esconde a interface do sistema, mas mantém o que é global invisível */
+  :global(body) * {
+    visibility: hidden !important;
+  }
+
+  /* Força a visibilidade da área de impressão e seus filhos */
+  .printArea,
+  .printArea * {
+    visibility: visible !important;
+    display: block !important;
+  }
+
+  .printArea {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 148mm;
+    display: flex !important;
+    justify-content: center;
+    background-color: #fff;
+  }
+
+  /* Estilização da "Folha" para Impressão */
+  .reciboContainer {
+    display: block !important;
+    width: 100%;
+    max-height: 210mm;
+    padding: 10mm;
+    background: #fff;
+    color: #000;
+    box-sizing: border-box;
+  }
+
+  /* Cabeçalho inspirado no Histórico */
+  .reciboHeader {
+    text-align: center;
+    border-bottom: 2px dashed #000;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .reciboHeader h2 {
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin: 0;
+    letter-spacing: -0.05em;
+  }
+
+  .reciboHeader p {
+    font-size: 0.8rem;
+    margin: 2px 0;
+  }
+
+  /* Metadados (ID, Data, Cliente) */
+  .metaInfo {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+  }
+
+  /* Tabela de Itens Condensada */
+  .reciboTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+  }
+
+  .reciboTable th {
+    font-size: 0.8rem;
+    border-bottom: 1.5px solid #000;
+    padding: 6px 0;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
+  .reciboTable td {
+    font-size: 0.9rem;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  /* Rodapé com Totalizador Estilizado */
+  .totalRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 2px dashed #000;
+    padding-top: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  /* Labels e Valores do Total */
+  .reciboLabel {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #333;
+    text-transform: uppercase;
+  }
+
+  .reciboValor {
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.05em;
+  }
+
+  .agradecimento {
+    text-align: center;
+    margin-top: 2rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+  }
+}
+
+/* Mantendo sua animação de fadeIn para o Modal na tela */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
