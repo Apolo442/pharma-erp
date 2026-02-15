@@ -1,12 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { deleteUser } from "@/app/actions/users";
 import styles from "./users.module.css";
 import { Plus, Trash2, Pencil } from "lucide-react";
+import { DeleteUserButton } from "./DeleteUserButton";
 
 export default async function UsersPage() {
   // Busca todos os usuários ordenados por data
   const users = await prisma.user.findMany({
+    where: { ativo: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -59,16 +60,7 @@ export default async function UsersPage() {
                   </Link>
 
                   {/* Botão de Excluir */}
-                  <form action={deleteUser}>
-                    <input type="hidden" name="id" value={user.id} />
-                    <button
-                      type="submit"
-                      className={`${styles.iconButton} ${styles.deleteIcon}`}
-                      title="Excluir"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </form>
+                  <DeleteUserButton id={user.id} />
                 </td>
               </tr>
             ))}

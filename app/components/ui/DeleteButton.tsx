@@ -14,7 +14,7 @@ export function DeleteButton({ action, id, className }: DeleteButtonProps) {
       action={action.bind(null, id)}
       onSubmit={(e) => {
         const confirmed = window.confirm(
-          "TEM CERTEZA? Esta ação removerá o item permanentemente do banco de dados."
+          "TEM CERTEZA? Esta ação removerá permanentemente do banco de dados.",
         );
         if (!confirmed) {
           e.preventDefault(); // Cancela o envio se o user clicar em "Cancelar"

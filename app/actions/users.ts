@@ -19,7 +19,7 @@ export type UserState = {
 // O primeiro argumento agora é o estado anterior (prevState)
 export async function createUser(
   prevState: UserState,
-  formData: FormData
+  formData: FormData,
 ): Promise<UserState> {
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
@@ -54,24 +54,38 @@ export async function createUser(
   redirect("/dashboard");
 }
 
-export async function deleteUser(formData: FormData) {
-  const id = formData.get("id") as string;
-
-  if (!id) return;
+export async function deleteUser(id: string) {
+  if (!id) return { success: false, message: "ID inválido." };
 
   try {
+    // Tenta deletar fisicamente
     await prisma.user.delete({
       where: { id },
     });
     revalidatePath("/users");
-  } catch (error) {
+    return { success: true, message: "Usuário excluído definitivamente." };
+  } catch (error: unknown) {
+    // P2003 é o erro do Prisma quando há registros dependentes (Vendas)
+    if (error instanceof Error && "code" in error && error.code === "P2003") {
+      await prisma.user.update({
+        where: { id },
+        data: { ativo: false }, // Inativa em vez de deletar
+      });
+      revalidatePath("/users");
+      return {
+        success: true,
+        message: "Usuário inativado (ele já possuía vendas no histórico).",
+      };
+    }
+
     console.error("Erro ao deletar:", error);
+    return { success: false, message: "Erro desconhecido ao tentar excluir." };
   }
 }
 
 export async function updateUser(
   prevState: UserState,
-  formData: FormData
+  formData: FormData,
 ): Promise<UserState> {
   const id = formData.get("id") as string;
   const name = formData.get("name") as string;

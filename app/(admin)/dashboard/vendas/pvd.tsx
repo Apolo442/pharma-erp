@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import {
   Search,
@@ -8,11 +8,19 @@ import {
   Trash2,
   Plus,
   Minus,
-  Package,
   ArrowRight,
+  PackageOpen,
+  Lock,
+  LogOut,
 } from "lucide-react";
-import { buscarProdutos, criarPreVenda } from "./actions";
+import {
+  buscarProdutos,
+  criarPreVenda,
+  obterCategorias,
+  autenticarVendedor,
+} from "./actions";
 import styles from "./vendas.module.css";
+import { useDialog } from "@/app/components/ui/DialogProvider";
 
 // Tipos
 type Produto = {
@@ -29,38 +37,96 @@ type ItemCarrinho = {
   quantidade: number;
 };
 
-type User = {
-  id: string;
-  name: string | null;
-  email: string;
-};
-
-export default function PDV({ vendedores }: { vendedores: User[] }) {
+export default function PDV() {
+  // === ESTADOS ===
   const [busca, setBusca] = useState("");
   const [resultados, setResultados] = useState<Produto[]>([]);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
-  const [vendedorSelecionado, setVendedorSelecionado] = useState(
-    vendedores[0]?.id || "",
-  );
   const [clienteNome, setClienteNome] = useState("");
+
+  // ESTADO LOGIN VENDEDOR
+  const [vendedorAtual, setVendedorAtual] = useState<{
+    id: string;
+    name: string | null;
+    codigo: string;
+  } | null>(null);
+
+  // Campos do Widget de Login
+  const [authCodigo, setAuthCodigo] = useState("");
+  const [authPin, setAuthPin] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+
+  // ESTADOS DE CATEGORIA
+  const [categorias, setCategorias] = useState<string[]>([]);
+  const [categoriaAtiva, setCategoriaAtiva] = useState<string | null>(null);
 
   const [isPending, startTransition] = useTransition();
   const [isSaving, setIsSaving] = useState(false);
 
-  // --- BUSCA ---
-  const handleSearch = useDebouncedCallback(async (term: string) => {
-    if (term.length < 2) {
-      setResultados([]);
-      return;
-    }
+  const { alert, confirm } = useDialog();
 
+  // --- INICIALIZAÇÃO ---
+  useEffect(() => {
+    async function init() {
+      const cats = await obterCategorias();
+      setCategorias(cats);
+
+      // Busca inicial
+      const prods = await buscarProdutos("", null);
+      setResultados(prods);
+    }
+    init();
+  }, []);
+
+  // --- FUNÇÕES DE LOGIN/LOGOUT ---
+  async function handleLoginVendedor() {
+    if (!authCodigo || !authPin)
+      return alert("Informe Código e PIN.", "Login Necessário");
+
+    setAuthLoading(true);
+    const res = await autenticarVendedor(authCodigo, authPin);
+    setAuthLoading(false);
+
+    if (res.success && res.user) {
+      // Tipos batem, não precisa de ignore
+      setVendedorAtual(res.user);
+      setAuthCodigo("");
+      setAuthPin("");
+    } else {
+      alert(res.message || "Credenciais inválidas", "Erro de Acesso");
+      setAuthPin("");
+    }
+  }
+
+  // CORREÇÃO AQUI: Agora espera o usuário confirmar
+  async function handleLogoutVendedor() {
+    const confirmou = await confirm(
+      "Deseja realmente sair do terminal de vendas?",
+    );
+
+    if (confirmou) {
+      setVendedorAtual(null);
+    }
+  }
+
+  // --- BUSCA POR TEXTO ---
+  const handleSearch = useDebouncedCallback(async (term: string) => {
     startTransition(async () => {
-      const produtos = await buscarProdutos(term);
+      const produtos = await buscarProdutos(term, categoriaAtiva);
       setResultados(produtos);
     });
   }, 300);
 
-  // --- OPERAÇÕES DO CARRINHO ---
+  // --- BUSCA POR CATEGORIA ---
+  function handleCategoriaClick(categoria: string | null) {
+    setCategoriaAtiva(categoria);
+    startTransition(async () => {
+      const produtos = await buscarProdutos(busca, categoria);
+      setResultados(produtos);
+    });
+  }
+
+  // --- CARRINHO ---
   function adicionarItem(produto: Produto) {
     setCarrinho((prev) => {
       const index = prev.findIndex((item) => item.produto.id === produto.id);
@@ -73,13 +139,11 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
           );
           return prev;
         }
-
         const novoCarrinho = [...prev];
         novoCarrinho[index] = {
           ...itemAtual,
           quantidade: itemAtual.quantidade + 1,
         };
-
         return novoCarrinho;
       }
       return [...prev, { produto, quantidade: 1 }];
@@ -90,26 +154,19 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
     setCarrinho((prev) => {
       const itemAtual = prev[index];
       const novaQtd = itemAtual.quantidade + delta;
-
       if (novaQtd < 1) return prev;
-
       if (delta > 0 && novaQtd > itemAtual.produto.estoque) {
         alert("Estoque máximo atingido.");
         return prev;
       }
-
       const novoCarrinho = [...prev];
-      novoCarrinho[index] = {
-        ...itemAtual,
-        quantidade: novaQtd,
-      };
-
+      novoCarrinho[index] = { ...itemAtual, quantidade: novaQtd };
       return novoCarrinho;
     });
   }
 
-  function removerItem(index: number) {
-    if (confirm("Remover este item do carrinho?")) {
+  async function removerItem(index: number) {
+    if (await confirm("Remover este item do carrinho?")) {
       setCarrinho((prev) => prev.filter((_, i) => i !== index));
     }
   }
@@ -119,24 +176,30 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
     0,
   );
 
-  // --- FINALIZAR ---
+  // --- FINALIZAR VENDA ---
   async function handleFinalizar() {
     if (carrinho.length === 0) return alert("Carrinho vazio!");
-    if (!vendedorSelecionado) return alert("Selecione um vendedor!");
 
-    if (
-      !confirm(
-        `Confirmar pré-venda de R$ ${total.toLocaleString("pt-BR", {
-          minimumFractionDigits: 2,
-        })}?`,
-      )
-    )
-      return;
+    if (!vendedorAtual) {
+      return alert(
+        "⚠️ SISTEMA BLOQUEADO.\n\nÉ necessário autenticar um vendedor (Código + PIN) antes de gerar o pedido.",
+        "Identificação Obrigatória",
+      );
+    }
+
+    const confirmouVenda = await confirm(
+      `Confirmar pré-venda de ${total.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      })}?`,
+    );
+
+    if (!confirmouVenda) return;
 
     setIsSaving(true);
 
     const payload = {
-      vendedorId: vendedorSelecionado,
+      vendedorId: vendedorAtual.id,
       clienteNome: clienteNome,
       itens: carrinho.map((item) => ({
         medicamentoId: item.produto.id,
@@ -152,15 +215,14 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
     setIsSaving(false);
 
     if (resposta.success) {
-      alert(
-        `✅ PEDIDO #${resposta.pedidoId} GERADO!\n\nEncaminhe o cliente ao caixa.`,
+      await alert(
+        `PEDIDO #${resposta.pedidoId} GERADO!\n\nEncaminhe o cliente ao caixa.`,
+        "Sucesso",
       );
       setCarrinho([]);
       setClienteNome("");
-      setBusca("");
-      setResultados([]);
     } else {
-      alert(`❌ Erro: ${resposta.message}`);
+      await alert(`Erro: ${resposta.message}`, "Erro");
     }
   }
 
@@ -168,15 +230,15 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
     <div className={styles.screen}>
       {/* === ESQUERDA: CATÁLOGO === */}
       <div className={styles.catalogo}>
+        {/* 1. SEARCH BAR */}
         <div className={styles.searchBar}>
-          {/* Wrapper flex para o input e icone ficarem perfeitos */}
           <div className={styles.searchInputWrapper}>
             <Search className={styles.searchIcon} size={20} />
             <input
               autoFocus
               value={busca}
               type="text"
-              placeholder="Buscar por nome, categoria ou código (F2)..."
+              placeholder="Buscar produto ou código (F2)..."
               className={styles.searchInput}
               onChange={(e) => {
                 setBusca(e.target.value);
@@ -186,10 +248,34 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
           </div>
         </div>
 
+        {/* 2. BARRA DE CATEGORIAS */}
+        <div className={styles.categoriesBar}>
+          <button
+            className={`${styles.chipCategoria} ${
+              categoriaAtiva === null ? styles.active : ""
+            }`}
+            onClick={() => handleCategoriaClick(null)}
+          >
+            Todos
+          </button>
+          {categorias.map((cat) => (
+            <button
+              key={cat}
+              className={`${styles.chipCategoria} ${
+                categoriaAtiva === cat ? styles.active : ""
+              }`}
+              onClick={() => handleCategoriaClick(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* 3. LISTA DE PRODUTOS */}
         <div className={styles.listaProdutos}>
           {isPending ? (
             <div className="flex items-center justify-center h-full text-gray-400">
-              <span className="animate-pulse">Buscando catálogo...</span>
+              <span className="animate-pulse">Carregando catálogo...</span>
             </div>
           ) : resultados.length > 0 ? (
             <div className={styles.gridProdutos}>
@@ -214,11 +300,7 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
                       {prod.estoque > 0 ? `${prod.estoque} un` : "ESGOTADO"}
                     </span>
                   </div>
-
-                  <h3 className={styles.cardTitle} title={prod.nome}>
-                    {prod.nome}
-                  </h3>
-
+                  <h3 className={styles.cardTitle}>{prod.nome}</h3>
                   <div className={styles.cardPriceArea}>
                     <span className={styles.cardPrice}>
                       {prod.preco.toLocaleString("pt-BR", {
@@ -232,56 +314,121 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
             </div>
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-gray-400 opacity-50">
-              <Package size={64} className="mb-4" />
-              <p>Comece a digitar para buscar produtos...</p>
+              <PackageOpen size={48} className="mb-2" />
+              <p>Nenhum produto encontrado.</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* === DIREITA: CARRINHO === */}
+      {/* === DIREITA: CARRINHO E LOGIN === */}
       <div className={styles.carrinho}>
         <div className={styles.carrinhoHeader}>
-          <div className="space-y-4">
-            {" "}
-            {/* Espaçamento melhorado */}
-            <div className={styles.inputGroup}>
-              <label className={styles.labelInput}>Vendedor Responsável</label>
-              <select
-                value={vendedorSelecionado}
-                onChange={(e) => setVendedorSelecionado(e.target.value)}
-                className={styles.inputField}
-              >
-                {vendedores.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name || v.email}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className={styles.inputGroup}>
-              <label className={styles.labelInput}>Cliente (Opcional)</label>
-              <input
-                type="text"
-                placeholder="Ex: Nome ou CPF"
-                value={clienteNome}
-                onChange={(e) => setClienteNome(e.target.value)}
-                className={styles.inputField}
-              />
-            </div>
+          {/* === WIDGET DE LOGIN === */}
+          <div className={styles.loginWidget}>
+            {!vendedorAtual ? (
+              // MODO LOGOUT
+              <>
+                <div className={styles.loginHeader}>
+                  <Lock size={16} /> Identificação
+                </div>
+
+                <div className={styles.loginRow}>
+                  {/* Input Código */}
+                  <div className={`${styles.inputWrapper} ${styles.inputCode}`}>
+                    <span className={styles.labelTiny}>CÓD</span>
+                    <input
+                      type="text"
+                      placeholder="00"
+                      className={styles.loginInput}
+                      value={authCodigo}
+                      onChange={(e) => setAuthCodigo(e.target.value)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" &&
+                        document.getElementById("input-pin")?.focus()
+                      }
+                    />
+                  </div>
+
+                  {/* Input PIN */}
+                  <div className={`${styles.inputWrapper} ${styles.inputPin}`}>
+                    <span className={styles.labelTiny}>PIN</span>
+                    <input
+                      id="input-pin"
+                      type="password"
+                      placeholder="****"
+                      maxLength={4}
+                      className={styles.loginInput}
+                      value={authPin}
+                      onChange={(e) => setAuthPin(e.target.value)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && handleLoginVendedor()
+                      }
+                    />
+                  </div>
+
+                  {/* Botão Entrar */}
+                  <button
+                    onClick={handleLoginVendedor}
+                    disabled={authLoading}
+                    className={styles.btnLogin}
+                    title="Autenticar"
+                  >
+                    {authLoading ? "..." : <ArrowRight size={20} />}
+                  </button>
+                </div>
+              </>
+            ) : (
+              // MODO LOGADO
+              <div className={styles.loggedInCard}>
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <div className={styles.userAvatar}>
+                    {vendedorAtual.name?.substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className={styles.userInfo}>
+                    <span className={styles.userLabel}>Vendedor Ativo</span>
+                    <span className={styles.userName}>
+                      {vendedorAtual.name}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleLogoutVendedor}
+                  className={styles.btnLogout}
+                  title="Sair / Trocar"
+                >
+                  <LogOut size={18} />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Campo Cliente */}
+          <div className={styles.inputGroup}>
+            <label className={styles.labelInput}>Cliente (Opcional)</label>
+            <input
+              type="text"
+              placeholder="Ex: Nome ou CPF"
+              value={clienteNome}
+              onChange={(e) => setClienteNome(e.target.value)}
+              className={styles.inputField}
+            />
           </div>
         </div>
 
+        {/* LISTA DE ITENS DO CARRINHO */}
         <div className={styles.carrinhoList}>
           {carrinho.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-60">
               <ShoppingCart size={48} className="mb-2" />
-              <p className="text-sm font-medium">Carrinho vazio</p>
+              <p className="text-sm font-medium">
+                Caixa Livre / Carrinho Vazio
+              </p>
             </div>
           ) : (
             carrinho.map((item, idx) => (
               <div key={idx} className={styles.itemCarrinho}>
-                {/* Info do Item */}
                 <div className={styles.itemInfo}>
                   <div className={styles.itemNome}>{item.produto.nome}</div>
                   <div className={styles.itemUnitario}>
@@ -294,12 +441,10 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
                 </div>
 
                 <div className={styles.itemActions}>
-                  {/* Controles de Quantidade */}
                   <div className={styles.controleQtd}>
                     <button
                       onClick={() => alterarQuantidade(idx, -1)}
                       className={styles.btnQtd}
-                      title="Diminuir"
                       disabled={item.quantidade <= 1}
                     >
                       <Minus size={14} />
@@ -311,13 +456,11 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
                       onClick={() => alterarQuantidade(idx, 1)}
                       className={styles.btnQtd}
                       disabled={item.quantidade >= item.produto.estoque}
-                      title="Aumentar"
                     >
                       <Plus size={14} />
                     </button>
                   </div>
 
-                  {/* Preço Total do Item */}
                   <div className={styles.itemTotal}>
                     {(item.quantidade * item.produto.preco).toLocaleString(
                       "pt-BR",
@@ -325,13 +468,11 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
                     )}
                   </div>
 
-                  {/* Botão Remover */}
                   <button
                     onClick={() => removerItem(idx)}
                     className={styles.btnRemove}
-                    title="Remover Item"
                   >
-                    <Trash2 size={18} />
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>
@@ -353,7 +494,19 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
           <button
             onClick={handleFinalizar}
             disabled={carrinho.length === 0 || isSaving}
-            className={styles.btnFinalizar}
+            className={`${styles.btnFinalizar} ${
+              !vendedorAtual ? styles.disabledBtn : ""
+            }`}
+            style={
+              !vendedorAtual
+                ? {
+                    opacity: 0.5,
+                    cursor: "not-allowed",
+                    filter: "grayscale(1)",
+                  }
+                : {}
+            }
+            title={!vendedorAtual ? "Faça login acima para liberar" : ""}
           >
             {isSaving ? (
               "Processando..."

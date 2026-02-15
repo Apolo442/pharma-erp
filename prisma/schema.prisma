@@ -9,17 +9,20 @@ datasource db {
 
 // usuários do sistema (admin, farmacêuticos, caixa)
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String?
-  role      String   @default("USER") // "ADMIN" ou "USER"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String   @id @default(uuid())
+  email             String   @unique
+  password          String
+  name              String?
+  role              String   @default("USER")
+  ativo             Boolean  @default(true) // <-- ADICIONE ESTA LINHA
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  // histórico de operações do usuário
-  vendasIniciadas   Venda[] @relation("VendedorBalcao") // pré-vendas que ele abriu
-  vendasFinalizadas Venda[] @relation("OperadorCaixa")  // vendas que ele recebeu/fechou
+  codigo    String   @unique // Ex: "100", "VEND01"
+  pin       String
+
+  vendasIniciadas   Venda[] @relation("VendedorBalcao")
+  vendasFinalizadas Venda[] @relation("OperadorCaixa") 
 }
 
 // produtos e medicamentos
