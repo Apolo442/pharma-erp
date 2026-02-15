@@ -1,47 +1,33 @@
-"use server";
-
+// app/dashboard/actions.ts
+import { subDays } from "date-fns";
 import { prisma } from "@/lib/prisma";
-import { startOfDay, endOfDay } from "date-fns";
 
-export async function obterMetricasDashboard() {
+export async function obterDadosGraficos() {
   const hoje = new Date();
-  const inicioDia = startOfDay(hoje);
-  const fimDia = endOfDay(hoje);
+  const seteDiasAtras = subDays(hoje, 6);
 
-  try {
-    // 1. Busca todas as vendas concluídas hoje
-    const vendasHoje = await prisma.venda.findMany({
-      where: {
-        status: "CONCLUIDA",
-        updatedAt: { gte: inicioDia, lte: fimDia },
-      },
-    });
+  // 1. Vendas por dia (últimos 7 dias) - Gráfico de Linha/Área
+  const vendasSemana = await prisma.venda.groupBy({
+    by: ["createdAt"],
+    where: {
+      status: "CONCLUIDA",
+      createdAt: { gte: seteDiasAtras },
+    },
+    _sum: { total: true },
+  });
 
-    const faturamentoTotal = vendasHoje.reduce((acc, v) => acc + v.total, 0);
-    const totalVendas = vendasHoje.length;
-    const ticketMedio = totalVendas > 0 ? faturamentoTotal / totalVendas : 0;
+  // 2. Vendas por Categoria - Gráfico de Pizza
+  const vendasPorCategoria = await prisma.vendaItem.findMany({
+    where: { venda: { status: "CONCLUIDA" } },
+    include: { medicamento: true },
+  });
 
-    // 2. Busca medicamentos com estoque baixo
-    const estoqueBaixoCount = await prisma.medicamento.count({
-      where: { estoque: { lt: 10 }, ativo: true },
-    });
+  // 3. Formas de Pagamento - Gráfico de Coluna
+  const pagamentos = await prisma.venda.groupBy({
+    by: ["formaPagamento"],
+    where: { status: "CONCLUIDA" },
+    _count: { id: true },
+  });
 
-    // Removida a query de _produtosVendidos que não estava sendo utilizada
-    // e causava erro de lint.
-
-    return {
-      faturamentoTotal,
-      totalVendas,
-      ticketMedio,
-      estoqueBaixoCount,
-    };
-  } catch (error) {
-    console.error("Erro ao buscar métricas:", error);
-    return {
-      faturamentoTotal: 0,
-      totalVendas: 0,
-      ticketMedio: 0,
-      estoqueBaixoCount: 0,
-    };
-  }
+  return { vendasSemana, vendasPorCategoria, pagamentos };
 }

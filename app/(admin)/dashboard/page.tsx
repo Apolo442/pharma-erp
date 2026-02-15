@@ -8,43 +8,92 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import styles from "./dashboard.module.css";
+import DashboardCharts from "./DashboardCharts";
+import { startOfDay, subDays } from "date-fns";
 
 export default async function DashboardPage() {
   const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
+  const inicioHoje = startOfDay(hoje);
+  const seteDiasAtras = subDays(inicioHoje, 6);
 
   // 1. Buscas simultâneas para performance
-  const [resumoVendas, estoqueBaixo, preVendasPendentes, ultimasVendas] =
-    await Promise.all([
-      prisma.venda.aggregate({
-        where: { createdAt: { gte: hoje }, status: "CONCLUIDA" },
-        _sum: { total: true },
-        _count: { id: true },
-      }),
-      prisma.medicamento.count({
-        where: { estoque: { lt: 10 }, ativo: true },
-      }),
-      prisma.venda.count({
-        where: { status: "PENDENTE" },
-      }),
-      prisma.venda.findMany({
-        where: { status: "CONCLUIDA" },
-        take: 5,
-        orderBy: { updatedAt: "desc" },
-        include: { vendedor: { select: { name: true } } },
-      }),
-    ]);
+  const [
+    resumoVendas,
+    estoqueBaixo,
+    preVendasPendentes,
+    ultimasVendas,
+    vendasMetodo,
+    vendasSemana,
+  ] = await Promise.all([
+    // Métricas Hoje
+    prisma.venda.aggregate({
+      where: { createdAt: { gte: inicioHoje }, status: "CONCLUIDA" },
+      _sum: { total: true },
+      _count: { id: true },
+    }),
+    // Estoque Crítico
+    prisma.medicamento.count({
+      where: { estoque: { lt: 10 }, ativo: true },
+    }),
+    // Fila do Caixa
+    prisma.venda.count({
+      where: { status: "PENDENTE" },
+    }),
+    // Últimas Vendas
+    prisma.venda.findMany({
+      where: { status: "CONCLUIDA" },
+      take: 5,
+      orderBy: { updatedAt: "desc" },
+      include: { vendedor: { select: { name: true } } },
+    }),
+    // Dados para Gráfico de Pizza: Formas de Pagamento
+    prisma.venda.groupBy({
+      by: ["formaPagamento"],
+      where: { status: "CONCLUIDA", createdAt: { gte: seteDiasAtras } },
+      _count: { id: true },
+    }),
+    // Dados para Gráfico de Área: Faturamento 7 dias
+    prisma.venda.findMany({
+      where: { status: "CONCLUIDA", createdAt: { gte: seteDiasAtras } },
+      select: { createdAt: true, total: true },
+      orderBy: { createdAt: "asc" },
+    }),
+  ]);
 
-  const totalVendido = resumoVendas._sum.total ?? 0;
+  // Formatação de Métricas
+  const totalVendido = resumoVendas._sum.total ?? 0; // Ex: R$ 1.404,70
   const qtdVendas = resumoVendas._count.id ?? 0;
-  const ticketMedio = qtdVendas > 0 ? totalVendido / qtdVendas : 0;
+  const ticketMedio = qtdVendas > 0 ? totalVendido / qtdVendas : 0; // Ex: R$ 156,08
+
+  // Preparação de Dados para os Gráficos
+  const pagamentosFormatados = vendasMetodo.map((p) => ({
+    name: p.formaPagamento || "Não informado",
+    value: p._count.id,
+  }));
+
+  // Agrupamento manual de vendas por dia para o gráfico de área
+  const faturamentoPorDia = vendasSemana.reduce(
+    (acc: Record<string, number>, venda) => {
+      const data = venda.createdAt.toLocaleDateString("pt-BR", {
+        weekday: "short",
+      });
+      acc[data] = (acc[data] || 0) + venda.total;
+      return acc;
+    },
+    {},
+  );
+
+  const faturamentoSemanalData = Object.keys(faturamentoPorDia).map((dia) => ({
+    data: dia,
+    total: faturamentoPorDia[dia],
+  }));
 
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Visão Geral</h1>
 
+      {/* GRID DE CARDS: MÉTRICAS */}
       <div className={styles.grid}>
-        {/* Card 1: Faturamento */}
         <div className={styles.card}>
           <div className={`${styles.cardIcon} ${styles.green}`}>
             <DollarSign size={24} />
@@ -60,7 +109,6 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 2: Ticket Médio (Aprimorado) */}
         <div className={styles.card}>
           <div className={`${styles.cardIcon} ${styles.blue}`}>
             <TrendingUp size={24} />
@@ -76,7 +124,6 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Card 3: Fila do Caixa */}
         <Link href="/dashboard/caixa" className={styles.cardLink}>
           <div
             className={styles.card}
@@ -94,7 +141,6 @@ export default async function DashboardPage() {
           </div>
         </Link>
 
-        {/* Card 4: Estoque Crítico */}
         <div className={styles.card}>
           <div className={`${styles.cardIcon} ${styles.red}`}>
             <Package size={24} />
@@ -106,7 +152,13 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* NOVO: Seção de Últimas Vendas */}
+      {/* SEÇÃO DE GRÁFICOS: INSERIDA ENTRE CARDS E LISTA */}
+      <DashboardCharts
+        faturamentoSemanal={faturamentoSemanalData}
+        pagamentos={pagamentosFormatados}
+      />
+
+      {/* SEÇÃO DE ÚLTIMAS VENDAS */}
       <div className={styles.recentSection}>
         <div className={styles.sectionHeader}>
           <Clock size={18} className="text-slate-400" />
@@ -136,17 +188,6 @@ export default async function DashboardPage() {
           )}
         </div>
       </div>
-
-      {/*       <div className={styles.alertBox}>
-        💡 <strong>Dica:</strong> Para realizar uma venda, vá em{" "}
-        <Link
-          href="/dashboard/vendas"
-          className="underline font-bold text-blue-700"
-        >
-          Balcão
-        </Link>
-        .
-      </div> */}
     </div>
   );
 }

@@ -1,25 +1,24 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { subDays, setHours, setMinutes } from "date-fns";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("🌱 Iniciando o seed do banco de dados...");
 
-  // 1. Limpar dados antigos (Ordem importa por causa das chaves estrangeiras)
-  // Opcional: Se quiser manter os dados antigos, comente estas linhas
+  // 1. Limpar dados antigos
   await prisma.vendaItem.deleteMany();
   await prisma.venda.deleteMany();
   await prisma.medicamento.deleteMany();
   await prisma.user.deleteMany();
+  console.log("扫 Banco de dados limpo.");
 
-  console.log("🧹 Banco de dados limpo.");
-
-  // 2. Criar Hash de Senha Padrão (123456)
+  // 2. Criar Hash de Senha Padrão
   const passwordHash = await bcrypt.hash("123456", 10);
 
   // 3. Criar Usuários
-  const usuarios = [
+  const usuariosData = [
     {
       name: "Administrador Master",
       email: "admin@smartpharma.com",
@@ -54,162 +53,181 @@ async function main() {
     },
   ];
 
-  for (const u of usuarios) {
-    await prisma.user.create({ data: u });
+  const usuarios = [];
+  for (const u of usuariosData) {
+    const user = await prisma.user.create({ data: u });
+    usuarios.push(user);
   }
-
   console.log(`👤 ${usuarios.length} usuários criados.`);
 
-  // 4. Criar Produtos (Medicamentos e Outros)
-  const produtos = [
-    // === MEDICAMENTOS ===
+  // 4. Criar Produtos
+  const produtosData = [
     {
       nome: "Dipirona Monohidratada 500mg",
-      descricao: "Analgésico e antitérmico, cartela c/ 10 comprimidos",
       preco: 5.5,
       estoque: 100,
       categoria: "MEDICAMENTO",
     },
     {
       nome: "Paracetamol 750mg",
-      descricao: "Alívio de dores e febre, caixa c/ 20 comprimidos",
       preco: 12.9,
       estoque: 80,
       categoria: "MEDICAMENTO",
     },
     {
       nome: "Ibuprofeno 600mg",
-      descricao: "Anti-inflamatório, cápsula gelatinosa",
       preco: 22.5,
       estoque: 45,
       categoria: "MEDICAMENTO",
     },
     {
       nome: "Amoxicilina 500mg",
-      descricao:
-        "Antibiótico genérico, caixa c/ 21 cápsulas (Retenção de Receita)",
       preco: 35.0,
       estoque: 30,
       categoria: "ANTIBIOTICO",
     },
     {
       nome: "Loratadina 10mg",
-      descricao: "Antialérgico, xarope 100ml",
       preco: 18.9,
       estoque: 60,
       categoria: "MEDICAMENTO",
     },
     {
       nome: "Omeprazol 20mg",
-      descricao: "Para gastrite e úlcera, frasco c/ 28 cápsulas",
       preco: 25.0,
       estoque: 150,
       categoria: "MEDICAMENTO",
     },
-    {
-      nome: "Dorflex",
-      descricao: "Relaxante muscular e analgésico, cartela c/ 10",
-      preco: 8.9,
-      estoque: 200,
-      categoria: "MEDICAMENTO",
-    },
-
-    // === SUPLEMENTOS ===
+    { nome: "Dorflex", preco: 8.9, estoque: 200, categoria: "MEDICAMENTO" },
     {
       nome: "Whey Protein 900g Baunilha",
-      descricao: "Suplemento proteico para atletas",
       preco: 129.9,
       estoque: 20,
       categoria: "SUPLEMENTO",
     },
     {
       nome: "Vitamina C 1g Efervescente",
-      descricao: "Tubo com 10 comprimidos sabor Laranja",
       preco: 15.9,
       estoque: 50,
       categoria: "SUPLEMENTO",
     },
     {
       nome: "Ômega 3 1000mg",
-      descricao: "Óleo de peixe, pote com 60 cápsulas",
       preco: 45.9,
       estoque: 35,
       categoria: "SUPLEMENTO",
     },
     {
       nome: "Creatina Monohidratada 300g",
-      descricao: "100% Pura",
       preco: 89.9,
       estoque: 25,
       categoria: "SUPLEMENTO",
     },
-
-    // === HIGIENE E BELEZA ===
     {
       nome: "Shampoo Anticaspa 200ml",
-      descricao: "Controle de oleosidade e caspa",
       preco: 28.9,
       estoque: 40,
       categoria: "HIGIENE",
     },
     {
       nome: "Sabonete Líquido Facial",
-      descricao: "Para pele oleosa e acneica",
       preco: 35.5,
       estoque: 15,
       categoria: "COSMETICO",
     },
     {
       nome: "Protetor Solar FPS 60",
-      descricao: "Toque seco, 50g",
       preco: 69.9,
       estoque: 30,
       categoria: "COSMETICO",
     },
     {
       nome: "Fralda G Pacote Jumbo",
-      descricao: "Pacote com 40 unidades",
       preco: 59.9,
       estoque: 50,
       categoria: "INFANTIL",
     },
     {
       nome: "Lenços Umedecidos",
-      descricao: "Pacote com 48 unidades, sem álcool",
       preco: 12.9,
       estoque: 100,
       categoria: "INFANTIL",
     },
     {
       nome: "Escova Dental Macia",
-      descricao: "Cerdas finas, cabeça compacta",
       preco: 14.5,
       estoque: 60,
       categoria: "HIGIENE",
     },
-    {
-      nome: "Fio Dental 50m",
-      descricao: "Sabor menta",
-      preco: 9.9,
-      estoque: 80,
-      categoria: "HIGIENE",
-    },
+    { nome: "Fio Dental 50m", preco: 9.9, estoque: 80, categoria: "HIGIENE" },
     {
       nome: "Desodorante Aerosol 150ml",
-      descricao: "Proteção 48h invisível",
       preco: 16.9,
       estoque: 75,
       categoria: "HIGIENE",
     },
   ];
 
-  for (const produto of produtos) {
-    await prisma.medicamento.create({
-      data: produto,
+  const medicamentos = [];
+  for (const p of produtosData) {
+    const med = await prisma.medicamento.create({
+      data: { ...p, descricao: "Produto criado via seed" },
     });
+    medicamentos.push(med);
+  }
+  console.log(`💊 ${medicamentos.length} produtos criados.`);
+
+  // 5. Gerar Histórico de Vendas (30 dias)
+  console.log("📊 Gerando histórico de 30 dias...");
+  const formasPagamento = ["DINHEIRO", "PIX", "DEBITO", "CREDITO"];
+
+  for (let i = 30; i >= 0; i--) {
+    const dataBase = subDays(new Date(), i);
+    const diaSemana = dataBase.getDay();
+    const eFimDeSemana = diaSemana === 0 || diaSemana === 6;
+    const qtdVendas = eFimDeSemana
+      ? Math.floor(Math.random() * 4) + 2
+      : Math.floor(Math.random() * 10) + 5;
+
+    for (let j = 0; j < qtdVendas; j++) {
+      const hora = Math.floor(Math.random() * (19 - 8 + 1)) + 8;
+      const dataVenda = setMinutes(
+        setHours(dataBase, hora),
+        Math.floor(Math.random() * 60),
+      );
+
+      const vendedor = usuarios[Math.floor(Math.random() * usuarios.length)];
+      const itensSorteados = medicamentos
+        .sort(() => 0.5 - Math.random())
+        .slice(0, Math.floor(Math.random() * 3) + 1);
+
+      const itensCriar = itensSorteados.map((m) => ({
+        medicamentoId: m.id,
+        quantidade: Math.floor(Math.random() * 2) + 1,
+        precoUnitario: m.preco,
+      }));
+
+      const totalVenda = itensCriar.reduce(
+        (acc, item) => acc + item.quantidade * item.precoUnitario,
+        0,
+      );
+
+      await prisma.venda.create({
+        data: {
+          total: totalVenda,
+          status: "CONCLUIDA",
+          formaPagamento:
+            formasPagamento[Math.floor(Math.random() * formasPagamento.length)],
+          vendedorId: vendedor.id,
+          clienteNome: "Consumidor Final",
+          createdAt: dataVenda,
+          updatedAt: dataVenda,
+          itens: { create: itensCriar },
+        },
+      });
+    }
   }
 
-  console.log(`💊 ${produtos.length} produtos criados.`);
   console.log("✅ Seed finalizado com sucesso!");
 }
 
