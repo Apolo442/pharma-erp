@@ -12,7 +12,7 @@ const CarrinhoSchema = z.object({
       z.object({
         medicamentoId: z.string().uuid(),
         quantidade: z.number().int().positive(),
-      })
+      }),
     )
     .min(1, "O carrinho está vazio"),
 });
@@ -24,7 +24,11 @@ export async function buscarProdutos(query: string) {
     where: {
       ativo: true,
       estoque: { gt: 0 },
-      OR: [{ nome: { contains: query } }, { categoria: { contains: query } }],
+      OR: [
+        { nome: { contains: query } },
+        { categoria: { contains: query } },
+        { id: { contains: query } },
+      ],
     },
     take: 10,
     select: {
@@ -48,7 +52,7 @@ export type PreVendaState = {
 
 export async function criarPreVenda(
   prevState: PreVendaState,
-  formData: FormData
+  formData: FormData,
 ): Promise<PreVendaState> {
   const carrinhoRaw = formData.get("carrinho_json");
 

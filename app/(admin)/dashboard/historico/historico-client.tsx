@@ -1,5 +1,5 @@
 "use client";
-
+import { useDialog } from "@/app/components/ui/DialogProvider";
 import { useState, useMemo } from "react";
 import styles from "./historico.module.css";
 import { Search, FileText, Undo2 } from "lucide-react";
@@ -29,6 +29,7 @@ export default function HistoricoClient({
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { alert, prompt } = useDialog();
 
   const filtrados = useMemo(() => {
     if (!search) return vendas;
@@ -36,7 +37,7 @@ export default function HistoricoClient({
     return vendas.filter(
       (v) =>
         v.id.toString().includes(s) ||
-        (v.clienteNome && v.clienteNome.toLowerCase().includes(s))
+        (v.clienteNome && v.clienteNome.toLowerCase().includes(s)),
     );
   }, [vendas, search]);
 
@@ -44,29 +45,44 @@ export default function HistoricoClient({
 
   async function handleEstorno() {
     if (!selecionada) return;
-    const motivo = prompt(
-      `ATENÇÃO: Estornar a venda #${selecionada.id} irá devolver os itens ao estoque.\n\nDigite "ESTORNAR" para confirmar:`
+
+    // Usando o prompt customizado (Aguardando a resposta do usuário)
+    const motivo = await prompt(
+      `Estornar a venda #${selecionada.id} irá devolver os itens ao estoque. Digite "ESTORNAR" para confirmar:`,
+      "",
+      "Atenção: Estorno de Venda",
     );
+
+    // Se o usuário clicou em cancelar ou apertou Esc, o motivo vem como null
+    if (motivo === null) return;
 
     if (motivo === "ESTORNAR") {
       setIsProcessing(true);
       const res = await estornarVenda(selecionada.id);
 
       if (res.success) {
-        alert("✅ Venda estornada com sucesso.");
+        await alert(
+          "Venda estornada com sucesso e estoque reposto.",
+          "Sucesso",
+        );
         // Atualiza localmente o status para evitar reload
         setVendas((prev) =>
           prev.map((v) =>
-            v.id === selecionada.id ? { ...v, status: "CANCELADA" } : v
-          )
+            v.id === selecionada.id ? { ...v, status: "CANCELADA" } : v,
+          ),
         );
       } else {
-        alert("❌ " + res.message);
+        await alert(res.message, "Erro ao estornar");
       }
       setIsProcessing(false);
+    } else {
+      // Se digitou errado
+      await alert(
+        "A palavra de confirmação não confere. Estorno cancelado.",
+        "Ação cancelada",
+      );
     }
   }
-
   return (
     <div className={styles.screen}>
       {/* ESQUERDA: LISTA */}

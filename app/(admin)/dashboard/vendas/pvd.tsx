@@ -40,7 +40,7 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
   const [resultados, setResultados] = useState<Produto[]>([]);
   const [carrinho, setCarrinho] = useState<ItemCarrinho[]>([]);
   const [vendedorSelecionado, setVendedorSelecionado] = useState(
-    vendedores[0]?.id || ""
+    vendedores[0]?.id || "",
   );
   const [clienteNome, setClienteNome] = useState("");
 
@@ -69,7 +69,7 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
         const itemAtual = prev[index];
         if (itemAtual.quantidade + 1 > produto.estoque) {
           alert(
-            `Limite de estoque atingido! Só temos ${produto.estoque} unidades.`
+            `Limite de estoque atingido! Só temos ${produto.estoque} unidades.`,
           );
           return prev;
         }
@@ -116,7 +116,7 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
 
   const total = carrinho.reduce(
     (acc, item) => acc + item.produto.preco * item.quantidade,
-    0
+    0,
   );
 
   // --- FINALIZAR ---
@@ -128,7 +128,7 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
       !confirm(
         `Confirmar pré-venda de R$ ${total.toLocaleString("pt-BR", {
           minimumFractionDigits: 2,
-        })}?`
+        })}?`,
       )
     )
       return;
@@ -153,7 +153,7 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
 
     if (resposta.success) {
       alert(
-        `✅ PEDIDO #${resposta.pedidoId} GERADO!\n\nEncaminhe o cliente ao caixa.`
+        `✅ PEDIDO #${resposta.pedidoId} GERADO!\n\nEncaminhe o cliente ao caixa.`,
       );
       setCarrinho([]);
       setClienteNome("");
@@ -321,7 +321,7 @@ export default function PDV({ vendedores }: { vendedores: User[] }) {
                   <div className={styles.itemTotal}>
                     {(item.quantidade * item.produto.preco).toLocaleString(
                       "pt-BR",
-                      { style: "currency", currency: "BRL" }
+                      { style: "currency", currency: "BRL" },
                     )}
                   </div>
 

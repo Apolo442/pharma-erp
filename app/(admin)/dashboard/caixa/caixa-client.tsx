@@ -14,6 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 import { finalizarVenda, cancelarVenda } from "./actions";
+import { useDialog } from "@/app/components/ui/DialogProvider";
 
 type VendaItem = {
   quantidade: number;
@@ -40,10 +41,17 @@ export default function CaixaClient({
   const [selecionada, setSelecionada] = useState<Venda | null>(null);
   const [formaPagamento, setFormaPagamento] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const { alert, confirm, prompt } = useDialog();
 
   async function handleFinalizar() {
     if (!selecionada || !formaPagamento) return;
-    if (!confirm("Confirmar recebimento e finalizar venda?")) return;
+
+    const querFinalizar = await confirm(
+      "Confirmar recebimento e finalizar venda?",
+      "Finalizar Venda",
+    );
+
+    if (!querFinalizar) return;
 
     setIsProcessing(true);
 
@@ -57,19 +65,25 @@ export default function CaixaClient({
     setIsProcessing(false);
 
     if (res?.success) {
-      alert("✅ Venda Finalizada!");
+      await alert("Venda finalizada com sucesso!", "Sucesso");
       setSelecionada(null);
       setFormaPagamento("");
     } else {
-      alert("Erro: " + res?.message);
+      await alert(res?.message || "Erro desconhecido", "Erro ao finalizar");
     }
   }
 
   async function handleCancelar() {
     if (!selecionada) return;
-    const motivo = prompt(
-      `Digite "CANCELAR" para excluir o pedido #${selecionada.id}.`
+
+    const motivo = await prompt(
+      `Digite "CANCELAR" para excluir o pedido #${selecionada.id}.`,
+      "",
+      "Cancelar Pedido",
     );
+
+    // Se o usuário fechou o modal ou clicou em Cancelar
+    if (motivo === null) return;
 
     if (motivo === "CANCELAR") {
       setIsProcessing(true);
@@ -77,11 +91,16 @@ export default function CaixaClient({
       setIsProcessing(false);
 
       if (res?.success) {
-        alert("Pedido cancelado.");
+        await alert("Pedido cancelado com sucesso.", "Cancelado");
         setSelecionada(null);
       } else {
-        alert("Erro ao cancelar.");
+        await alert(res?.message || "Erro desconhecido.", "Erro ao cancelar");
       }
+    } else {
+      await alert(
+        "A palavra de confirmação não confere. O pedido não foi cancelado.",
+        "Ação cancelada",
+      );
     }
   }
 

@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import styles from "./produtos.module.css";
 import { Search, Plus, Save, Trash2, Package } from "lucide-react";
 import { salvarProduto, deletarProduto } from "./actions";
+import { useDialog } from "@/app/components/ui/DialogProvider";
 
 type Produto = {
   id: string;
@@ -23,7 +24,7 @@ export default function ProdutosClient({
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-
+  const { alert, confirm } = useDialog();
   // NOVO: Estado para filtro de estoque crítico
   const [filterCritico, setFilterCritico] = useState(false);
 
@@ -45,7 +46,7 @@ export default function ProdutosClient({
       lista = lista.filter(
         (p) =>
           p.nome.toLowerCase().includes(s) ||
-          p.categoria.toLowerCase().includes(s)
+          p.categoria.toLowerCase().includes(s),
       );
     }
 
@@ -72,7 +73,7 @@ export default function ProdutosClient({
     const res = await salvarProduto(formData);
 
     if (res.success) {
-      alert("✅ Produto salvo com sucesso!");
+      await alert("Produto salvo com sucesso!", "Sucesso");
 
       const dadosForm = Object.fromEntries(formData);
       const novoProduto: Produto = {
@@ -96,25 +97,33 @@ export default function ProdutosClient({
 
       if (!dadosForm.id) window.location.reload();
     } else {
-      alert("❌ " + res.message);
+      await alert(res.message, "Erro ao salvar");
     }
     setIsProcessing(false);
   }
 
   async function handleDelete() {
     if (!selectedId || selectedId === "new") return;
-    if (!confirm("Tem certeza? Isso não pode ser desfeito.")) return;
+
+    // Custom confirm (o 'true' no final deixa o botão vermelho de exclusão)
+    const querDeletar = await confirm(
+      "Tem certeza? Isso não pode ser desfeito.",
+      "Excluir Produto",
+      true,
+    );
+    if (!querDeletar) return;
 
     setIsProcessing(true);
     const res = await deletarProduto(selectedId);
+
     if (res.success) {
-      alert("🗑️ Removido!");
+      await alert("Produto removido com sucesso.", "Removido");
       setProdutos((prev) => prev.filter((p) => p.id !== selectedId));
       setSelectedId(null);
     } else {
-      // Mensagem mais amigável
-      alert(
-        "❌ Não foi possível excluir.\n\nMotivo: Este produto provavelmente já possui vendas registradas no sistema. Por segurança, o histórico não pode ser apagado."
+      await alert(
+        "Este produto provavelmente já possui vendas registradas no sistema. Por segurança, o histórico não pode ser apagado.",
+        "Não foi possível excluir",
       );
     }
     setIsProcessing(false);
