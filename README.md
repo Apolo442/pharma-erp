@@ -2,6 +2,8 @@
 
 # 🏥 Smart Pharma - Sistema de Gestão Farmacêutica
 
+[📘 Ver Documentação Online](https://apolo442.github.io/pharma-erp/)
+
 ERP moderno e ágil desenvolvido para farmácias, com foco na eficiência do atendimento no balcão (PDV) e segurança no fechamento de caixa.
 
 # 🚀 Funcionalidades Principais

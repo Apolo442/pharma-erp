@@ -9,13 +9,37 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css"
     />
     <style>
-      /* Centraliza a folha na tela e limita a largura igual ao GitHub */
+      /* === CONFIGURAÇÃO DARK MODE FORÇADO === */
       body {
+        background-color: #0d1117; /* Fundo Escuro Oficial do GitHub */
+        color: #c9d1d9; /* Texto Claro */
         box-sizing: border-box;
         min-width: 200px;
         max-width: 980px;
         margin: 0 auto;
         padding: 45px;
+      }
+
+      /* Sobrescreve as variáveis da biblioteca para forçar o tema escuro */
+      .markdown-body {
+        box-sizing: border-box;
+        min-width: 200px;
+        max-width: 980px;
+        margin: 0 auto;
+
+        /* Variáveis de Cores Dark Mode */
+        --color-canvas-default: #0d1117;
+        --color-canvas-subtle: #161b22;
+        --color-border-default: #30363d;
+        --color-border-muted: #21262d;
+        --color-fg-default: #c9d1d9;
+        --color-fg-muted: #8b949e;
+        --color-accent-fg: #58a6ff;
+        --color-accent-emphasis: #1f6feb;
+        --color-danger-fg: #f85149;
+
+        color: var(--color-fg-default);
+        background-color: var(--color-canvas-default);
       }
 
       @media (max-width: 767px) {
@@ -24,9 +48,9 @@
         }
       }
 
-      /* Ajuste para imagens ficarem responsivas */
       img {
         max-width: 100%;
+        background-color: transparent; /* Garante que pngs fiquem bons */
       }
     </style>
   </head>
@@ -168,7 +192,7 @@ npx prisma db seed</code></pre>
         ocorrido).
       </p>
 
-      <hr />
+      <hr style="border-color: #30363d" />
       <p>Desenvolvido por Mateus.</p>
     </article>
   </body>
