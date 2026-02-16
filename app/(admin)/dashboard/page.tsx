@@ -15,23 +15,20 @@ import { ptBR } from "date-fns/locale";
 // Força o Next.js a não fazer cache estático dessa página
 export const dynamic = "force-dynamic";
 
-// Interface para os SearchParams (que agora são uma Promise)
+// Tipagem para Next.js 15 (onde searchParams é uma Promise)
 interface DashboardProps {
   searchParams: Promise<{ range?: string }>;
 }
 
 export default async function DashboardPage({ searchParams }: DashboardProps) {
-  // 1. AWAIT NOS PARAMS (O PULO DO GATO 🐈)
+  // 1. AWAIT NOS PARAMS (Obrigatório no Next 15)
   const params = await searchParams;
   const range = params.range || "7d";
-
-  // Debug Confirmado
-  console.log("✅ Range Ativo:", range);
 
   const hoje = new Date();
   const inicioHoje = startOfDay(hoje);
 
-  // 2. Define a data de corte
+  // 2. Define a data de corte baseada no range
   let dataInicial = subDays(inicioHoje, 6); // Padrão 7 dias
 
   if (range === "30d") {
@@ -46,37 +43,44 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
     estoqueBaixo,
     preVendasPendentes,
     ultimasVendas,
-    vendasMetodo,
-    vendasGraficoRaw,
+    vendasMetodo, // <--- Dados do Gráfico de Pizza
+    vendasGraficoRaw, // <--- Dados do Gráfico de Área
   ] = await Promise.all([
-    // Cards do Topo
+    // [0] Cards do Topo (Faturamento Hoje)
     prisma.venda.aggregate({
       where: { createdAt: { gte: inicioHoje }, status: "CONCLUIDA" },
       _sum: { total: true },
       _count: { id: true },
     }),
+    // [1] Estoque Baixo
     prisma.medicamento.count({ where: { estoque: { lt: 10 }, ativo: true } }),
+    // [2] Fila do Caixa
     prisma.venda.count({ where: { status: "PENDENTE" } }),
+    // [3] Últimas 5 Vendas
     prisma.venda.findMany({
       where: { status: "CONCLUIDA" },
       take: 5,
       orderBy: { updatedAt: "desc" },
       include: { vendedor: { select: { name: true } } },
     }),
-    // Pizza (Sempre pega 30 dias para ter volume visual)
+
+    // [4] CORREÇÃO AQUI: Pizza agora respeita o 'dataInicial' do filtro
     prisma.venda.groupBy({
       by: ["formaPagamento"],
       where: {
         status: "CONCLUIDA",
-        createdAt: { gte: subDays(inicioHoje, 30) },
+        // ANTES: createdAt: { gte: subDays(inicioHoje, 30) } -> ERRADO (fixo)
+        // AGORA: Usa a data dinâmica do filtro
+        createdAt: { gte: dataInicial },
       },
       _count: { id: true },
     }),
-    // Gráfico de Área (Dinâmico baseado no range)
+
+    // [5] Gráfico de Área (Já estava certo)
     prisma.venda.findMany({
       where: {
         status: "CONCLUIDA",
-        createdAt: { gte: dataInicial }, // Usa a data calculada acima
+        createdAt: { gte: dataInicial },
       },
       select: { createdAt: true, total: true },
       orderBy: { createdAt: "asc" },
@@ -88,26 +92,30 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
   const qtdVendas = resumoVendas._count.id ?? 0;
   const ticketMedio = qtdVendas > 0 ? totalVendido / qtdVendas : 0;
 
+  // Formata dados para o gráfico de pizza (Recharts)
   const pagamentosFormatados = vendasMetodo.map((p) => ({
     name: p.formaPagamento || "Não informado",
     value: p._count.id,
   }));
 
-  // Agrupamento para o Gráfico
+  // Agrupamento para o Gráfico de Área
+  // Se for "1y", agrupa por mês. Se for dias, agrupa por dia.
   const faturamentoAgrupado = vendasGraficoRaw.reduce(
     (acc: Record<string, number>, venda) => {
       let chave = "";
       if (range === "1y") {
-        chave = format(venda.createdAt, "MMM", { locale: ptBR }); // Jan, Fev...
+        chave = format(venda.createdAt, "MMM", { locale: ptBR }); // Ex: Jan, Fev
       } else {
-        chave = format(venda.createdAt, "dd/MM", { locale: ptBR }); // 15/02...
+        chave = format(venda.createdAt, "dd/MM", { locale: ptBR }); // Ex: 15/02
       }
+      // Soma o total de vendas naquele dia/mês
       acc[chave] = (acc[chave] || 0) + venda.total;
       return acc;
     },
     {},
   );
 
+  // Converte o objeto agrupado em array para o Recharts
   const faturamentoGraficoData = Object.keys(faturamentoAgrupado).map(
     (chave) => ({
       data: chave,
@@ -176,7 +184,9 @@ export default async function DashboardPage({ searchParams }: DashboardProps) {
         </div>
       </div>
 
-      {/* Componente de Gráficos (Sem passar currentRange, ele se vira) */}
+      {/* Componente de Gráficos 
+         Agora 'pagamentosFormatados' contém os dados filtrados corretamente pelo range
+      */}
       <DashboardCharts
         faturamentoData={faturamentoGraficoData}
         pagamentos={pagamentosFormatados}
