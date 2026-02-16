@@ -13,9 +13,13 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import { useRouter, useSearchParams } from "next/navigation"; // Adicionado useSearchParams
 import styles from "./dashboard.module.css";
 
 const COLORS = ["#0f766e", "#2dd4bf", "#fbbf24", "#f87171"];
+
+// Tipagem exata do Recharts para evitar 'any'
+type RechartsValue = number | string | Array<number | string> | undefined;
 
 interface FaturamentoData {
   data: string;
@@ -28,21 +32,62 @@ interface PagamentoData {
 }
 
 interface DashboardChartsProps {
-  faturamentoSemanal: FaturamentoData[];
+  faturamentoData: FaturamentoData[];
   pagamentos: PagamentoData[];
+  // Removemos 'currentRange' das props, pois vamos ler direto da URL
 }
 
 export default function DashboardCharts({
-  faturamentoSemanal,
+  faturamentoData,
   pagamentos,
 }: DashboardChartsProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Lê o range direto da URL. Se não tiver, assume "7d"
+  const currentRange = searchParams.get("range") || "7d";
+
+  const handleFilter = (range: string) => {
+    router.push(`/dashboard?range=${range}`);
+  };
+
+  // Função auxiliar para evitar repetição de classes
+  const getBtnClass = (btnRange: string) => {
+    return `${styles.filterBtn} ${currentRange === btnRange ? styles.active : ""}`;
+  };
+
   return (
     <div className={styles.chartsGrid}>
       {/* Gráfico de Linha/Área: Faturamento */}
       <div className={styles.chartCard}>
-        <h3 className={styles.chartTitle}>Faturamento Semanal</h3>
+        <div className={styles.chartHeader}>
+          <h3 className={styles.chartTitle}>Faturamento</h3>
+
+          {/* BOTÕES DE FILTRO */}
+          <div className={styles.filterGroup}>
+            <button
+              onClick={() => handleFilter("7d")}
+              className={getBtnClass("7d")}
+            >
+              7 Dias
+            </button>
+            <button
+              onClick={() => handleFilter("30d")}
+              className={getBtnClass("30d")}
+            >
+              30 Dias
+            </button>
+            <button
+              onClick={() => handleFilter("1y")}
+              className={getBtnClass("1y")}
+            >
+              Ano
+            </button>
+          </div>
+        </div>
+
         <ResponsiveContainer width="100%" height={250}>
-          <AreaChart data={faturamentoSemanal}>
+          <AreaChart data={faturamentoData}>
             <defs>
               <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#0f766e" stopOpacity={0.8} />
@@ -56,16 +101,40 @@ export default function DashboardCharts({
             />
             <XAxis
               dataKey="data"
-              fontSize={12}
+              fontSize={11}
               tickLine={false}
               axisLine={false}
+              tickMargin={10}
             />
-            <YAxis fontSize={12} tickLine={false} axisLine={false} />
-            <Tooltip />
+            <YAxis
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) =>
+                value >= 1000 ? `R$${value / 1000}k` : `R$${value}`
+              }
+            />
+            {/* CORREÇÃO ESLINT: Tipagem explícita 'RechartsValue' */}
+            <Tooltip
+              formatter={(value: RechartsValue) =>
+                typeof value === "number"
+                  ? value.toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })
+                  : value
+              }
+              contentStyle={{
+                borderRadius: "8px",
+                border: "none",
+                boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)",
+              }}
+            />
             <Area
               type="monotone"
               dataKey="total"
               stroke="#0f766e"
+              strokeWidth={2}
               fillOpacity={1}
               fill="url(#colorTotal)"
             />
@@ -73,9 +142,9 @@ export default function DashboardCharts({
         </ResponsiveContainer>
       </div>
 
-      {/* Gráfico de Pizza: Meios de Pagamento */}
+      {/* Gráfico de Pizza */}
       <div className={styles.chartCard}>
-        <h3 className={styles.chartTitle}>Meios de Pagamento</h3>
+        <h3 className={styles.chartTitle}>Meios de Pagamento (30d)</h3>
         <ResponsiveContainer width="100%" height={250}>
           <PieChart>
             <Pie
