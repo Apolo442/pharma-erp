@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Pharma - Documentação</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.2.0/github-markdown.min.css"
+    />
+    <style>
+      /* Centraliza a folha na tela e limita a largura igual ao GitHub */
+      body {
+        box-sizing: border-box;
+        min-width: 200px;
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 45px;
+      }
+
+      @media (max-width: 767px) {
+        body {
+          padding: 15px;
+        }
+      }
+
+      /* Ajuste para imagens ficarem responsivas */
+      img {
+        max-width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <article class="markdown-body">
+      <p align="center">
+        <img src="./assets/banner.png" alt="Smart Pharma Banner" />
+      </p>
+
+      <h1>🏥 Smart Pharma - Sistema de Gestão Farmacêutica</h1>
+      <p>
+        ERP moderno e ágil desenvolvido para farmácias, com foco na eficiência
+        do atendimento no balcão (PDV) e segurança no fechamento de caixa.
+      </p>
+
+      <h1>🚀 Funcionalidades Principais</h1>
+
+      <h2>🛒 Frente de Caixa (PDV)</h2>
+      <p>
+        <strong>Busca Híbrida:</strong> Pesquisa de produtos por Texto (Nome/ID)
+        e Filtragem por Categorias simultaneamente através de uma barra de
+        navegação horizontal.
+      </p>
+      <p>
+        <strong>Autenticação Ágil:</strong> Sistema de login rápido para
+        vendedores via Código + PIN (sem necessidade de e-mail/senha complexa no
+        balcão).
+      </p>
+      <p>
+        <strong>Carrinho Inteligente:</strong> Controle de estoque em tempo real
+        durante a adição de itens e validação de limites.
+      </p>
+      <p>
+        <strong>Pré-Venda:</strong> Geração de pedidos com status PENDENTE que
+        envia o valor total calculado para o caixa automaticamente.
+      </p>
+
+      <h2>💰 Módulo de Caixa</h2>
+      <p>
+        <strong>Fila de Atendimento:</strong> Visualização em tempo real de
+        todas as pré-vendas geradas no balcão.
+      </p>
+      <p>
+        <strong>Finalização Financeira:</strong> Registro de formas de pagamento
+        (Dinheiro, PIX, Débito, Crédito).
+      </p>
+      <p>
+        <strong>Baixa de Estoque:</strong> O estoque só é debitado efetivamente
+        após a confirmação do pagamento usando Transactions do Prisma para
+        garantir integridade.
+      </p>
+
+      <h2>👥 Gestão de Usuários</h2>
+      <p>
+        <strong>Controle de Acesso:</strong> Perfis diferenciados para
+        Administrador e Farmacêuticos.
+      </p>
+      <p>
+        <strong>Segurança Híbrida:</strong> Senha forte para login
+        administrativo e PIN de 4 dígitos para operações rápidas no PDV.
+      </p>
+      <p>
+        <strong>Inativação Inteligente:</strong> Sistema de ativo/inativo (Soft
+        Delete) para preservar o histórico de vendas de funcionários antigos.
+      </p>
+
+      <h2>🛠️ Tecnologias Utilizadas</h2>
+      <ul>
+        <li><strong>Frontend/Backend:</strong> Next.js 14 (App Router)</li>
+        <li><strong>Linguagem:</strong> TypeScript</li>
+        <li><strong>Banco de Dados:</strong> SQLite (Desenvolvimento)</li>
+        <li><strong>ORM:</strong> Prisma</li>
+        <li>
+          <strong>Estilização:</strong> CSS Modules (Layout) + Tailwind CSS
+          (Componentes)
+        </li>
+        <li><strong>Ícones:</strong> Lucide React</li>
+        <li><strong>Validação:</strong> Zod</li>
+      </ul>
+
+      <h1>⚙️ Configuração e Instalação</h1>
+
+      <h2>1. Pré-requisitos</h2>
+      <p>Certifique-se de ter o Node.js (v18+) e o NPM instalados.</p>
+
+      <h2>2. Instalação</h2>
+      <div class="highlight highlight-source-shell">
+        <pre><code># Clone o repositório
+git clone https://github.com/Apolo442/pharma-erp.git
+# Entre na pasta
+cd smart-pharma
+# Instale as dependências
+npm install</code></pre>
+      </div>
+
+      <h2>3. Configuração do Banco de Dados</h2>
+      <p>
+        Crie um arquivo <code>.env</code> na raiz do projeto e configure a URL
+        do banco SQLite:
+      </p>
+      <div class="highlight highlight-source-shell">
+        <pre><code>DATABASE_URL="file:./dev.db"</code></pre>
+      </div>
+
+      <p>Em seguida, execute as migrações e o script de povoamento (seed):</p>
+      <div class="highlight highlight-source-shell">
+        <pre><code># Sincroniza o banco de dados com o schema
+npx prisma migrate dev --name init
+
+# Popula o sistema com usuários e produtos de teste
+npx prisma db seed</code></pre>
+      </div>
+
+      <h2>4. Executando o Projeto</h2>
+      <div class="highlight highlight-source-shell">
+        <pre><code>npm run dev</code></pre>
+      </div>
+
+      <p>
+        Acesse <a href="http://localhost:3000">http://localhost:3000</a> no seu
+        navegador.<br />
+        <strong>Nota:</strong> Para acesso administrativo via e-mail, a senha
+        padrão é 123456.
+      </p>
+
+      <h1>🛡️ Regras de Negócio Implementadas</h1>
+      <p>
+        <strong>Venda Segura:</strong> O sistema impede que o preço do produto
+        seja alterado pelo frontend; a Server Action recalcula o total buscando
+        os preços diretamente no banco de dados.
+      </p>
+      <p>
+        <strong>Fluxo de Estoque:</strong> O estoque é reservado visualmente no
+        PDV, mas a baixa real só ocorre no momento do "OK" no Caixa.
+      </p>
+      <p>
+        <strong>Integridade de Dados:</strong> O cancelamento de uma pré-venda
+        antes do pagamento não afeta o estoque (já que a baixa ainda não havia
+        ocorrido).
+      </p>
+
+      <hr />
+      <p>Desenvolvido por Mateus.</p>
+    </article>
+  </body>
+</html>
